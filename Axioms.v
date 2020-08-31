@@ -1,6 +1,5 @@
 Require Export Logics.
 Require Export Coq.Setoids.Setoid.
-Require Export Coq.Setoids.Setoid.
 
 Lemma or_elim {A} :
   A \/ A <-> A.
@@ -93,6 +92,7 @@ Theorem pairing x y u (u_ : M u):
 Proof.
   by rewrite classify.
 Qed.
+
 
 
 
