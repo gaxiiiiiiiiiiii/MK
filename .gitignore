@@ -4,4 +4,4 @@
 *.vo
 *.vok
 *.vos
-.gitignore
+*.gitignore
