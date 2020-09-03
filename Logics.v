@@ -68,15 +68,15 @@ Proof.
     apply DoubleNegative.
     intro x.
     case (ExcludedMiddle (P x)) as [Px | notPx ].
-  - done.
-  - assert (Px : exists x, ~ P x).
-    * exists x.
-      apply notPx.
-    * case (H Px).
-    + intros H allPx.
-      induction H as [x notPx].
-      specialize (allPx x) as Px.
-      apply (notPx Px).
+    - done.
+    - assert (Px : exists x, ~ P x).
+      * exists x.
+        apply notPx.
+      * case (H Px).
++ intros H allPx.
+  induction H as [x notPx].
+  specialize (allPx x) as Px.
+  apply (notPx Px).
 Qed.
 
 

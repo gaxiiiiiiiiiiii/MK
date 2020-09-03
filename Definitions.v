@@ -15,9 +15,6 @@ Qed.
 Definition OP X Y:= Pairing (Single X) (Pairing X Y).
 Notation "<| a , b , .. , d |>" := (OP .. (OP a b) .. d).
 
-
-
-  
 Definition InRel :=
   {|fun u => exists x y, M x /\ M y /\ u = <|x,y|> /\ x ∈ y|}.
 
@@ -69,17 +66,57 @@ Definition Cup X Y :=
     ((X ^c) ∩ (Y ^c)) ^c.
 Notation "X ∪ Y" := (Cup X Y) (at level 10).    
 
-Theorem cup X Y u (u_ : M u):
+Theorem cup X Y u :
   u ∈ (X ∪ Y) <-> u ∈ X \/ u ∈ Y.
 Proof.
-  unfold Cup.
-  rewrite (comple _ u u_).
-  rewrite cap.
-  repeat rewrite (comple _ u u_).
-  rewrite DeMorgan_notand.
-  repeat rewrite DoubleNegative.
-  done.
+  split => [H | H].
+  + assert (u_ : M u) by (by exists (X ∪ Y)).
+    apply comple in H.
+    move : H.
+    rewrite cap.
+    repeat rewrite comple.
+    rewrite DeMorgan_notand.
+    repeat rewrite DoubleNegative.
+    done.
+    done.
+    done.
+    done.
+  + induction H as [uX | uY].
+    - assert (u_ : M u) by (by exists X).
+      apply comple.
+      done.
+      rewrite cap.
+      repeat rewrite comple.
+      apply DeMorgan_notand.
+      repeat rewrite DoubleNegative.
+      by apply or_introl.
+      done. done.
+    - assert (u_ : M u) by (by exists Y).
+      apply comple.
+      done.
+      rewrite cap.
+      repeat rewrite comple.
+      apply DeMorgan_notand.
+      repeat rewrite DoubleNegative.
+      by apply or_intror.
+      done. done.
 Qed.
+
+Definition V :=
+  ∅ ^c.
+
+Theorem universe x :
+  x ∈ V <-> M x.
+Proof.
+  split => [H | H].
+  + by exists V.
+  + rewrite comple.
+    by apply empty.
+    done.
+Qed.    
+
+
+
 
 
 Definition Dom f :=
@@ -159,37 +196,72 @@ Definition Inverse f :=
   {| fun u => exists x y, M x /\ M y /\ u = <|x,y|> /\ <|y,x|> ∈ f|}.
 Notation "f ¹"  := (Inverse f) (at level 5).
 
-Theorem inverse f u (u_ : M u) :
+Theorem inverse f u :
   u ∈ f¹ <-> exists x y, M x /\ M y /\ u = <|x,y|> /\ <|y,x|> ∈ f.
 Proof.
-  by rewrite classify.
+  split => [H | H].
+  + assert (u_ : M u) by (by exists f¹).
+    by apply (classify (fun u => exists x y, M x /\ M y /\ u = <|x,y|> /\ <|y,x|> ∈ f)) in H.
+  + induction H as [x]; induction H as [y].
+    induction H as [x_]; induction H as [y_].
+    induction H as [u_xy uf].
+    subst u.
+    apply (classify (fun u => exists x y, M x /\ M y /\ u = <|x,y|> /\ <|y,x|> ∈ f)).
+    apply pairing_set.
+    by apply pairing_set.
+    by apply pairing_set.
+    by exists x; exists y.    
 Qed.
 
 Definition Union X :=
   {| fun x => exists Y, x ∈ Y /\ Y ∈ X|}.
 Notation "⊔ X" := (Union X) (at level 10).
 
-Theorem union X x (x_ : M x):
+Theorem union X x :
   x ∈ ⊔ X <-> exists Y, x ∈ Y /\ Y ∈ X.
 Proof.
-  by apply classify.
+  split => [H | H].
+  assert (x_ : M x) by (by exists (⊔ X)).
+  + move : H. rewrite classify. intro H.
+    induction H as [Y].
+    induction H as [xY YX].
+    by exists Y.
+    done.
+  + induction H as [Y]; induction H as [xY YX].
+    rewrite classify.
+    by exists Y.
+    by exists Y.
 Qed.
 
 Axiom union_set :
   forall x, M x -> M (⊔ x).
 
+Definition Caps X :=
+  {|fun x => forall Y, Y ∈ X -> x ∈ Y|}.
+Notation "⊓ X" := (Caps X) (at level 10).
 
+Theorem caps X x (x_ : M x) :
+    x ∈ ⊓ X <-> forall Y, Y ∈ X -> x ∈ Y.
+Proof.
+  by rewrite classify.
+Qed.
 
-
-  
-
-
-
-
-
-
-
-
-
-
-
+Theorem caps_empty :
+  ⊓ ∅ = V.
+Proof.
+  rewrite equal => i.
+  split => [H | H].
+  + assert (i_ : M i) by (by exists (⊓ ∅)).
+    unfold V.
+    rewrite comple.
+    apply empty.
+    done.
+    done.
+  + assert (i_ : M i) by (by exists V).
+    rewrite caps.
+    intros Y Y0.
+    assert (Y_ : M Y) by (by exists ∅).
+    specialize (empty Y Y_) as emp.
+    case (emp Y0).
+    done.
+Qed.

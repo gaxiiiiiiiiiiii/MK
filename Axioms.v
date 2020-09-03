@@ -44,42 +44,26 @@ Definition Pr X :=
 Axiom Existance :
 forall P, exists Z, forall x, M x -> x ∈ Z <-> P x.
 
-Declare Scope NBG_scope.
-Open Scope NBG_scope.
 
 
 
 Axiom Classify : (Class -> Prop) -> Class.
-Notation "{| P |}"  := (Classify P) (at level 10) : NBG_scope.
+Notation "{| P |}"  := (Classify P) (at level 10).
 
 Axiom classify :
   forall P u, M u -> u ∈ ({|P|}) <-> P u.
 
 
-Definition Empty :=
-  {| fun x => x <> x|}.
-
+Axiom Empty : Class.
 Notation "∅" := (Empty).
 
-Theorem empty x (x_ : M x):
-  ~ x ∈ ∅.
-Proof.
-  rewrite classify.
-  by apply DoubleNegative.
-  auto.
-Qed.  
+Axiom empty :
+  forall x, M x -> ~ x ∈ ∅.
     
 Axiom empty_set :
   M ∅.
 
-Definition V :=
-  {|fun x => x = x |}.
-
-Theorem universe x (x_ : M x):
-  x ∈ V.
-Proof.
-  by apply classify.
-Qed.  
+ 
 
 Definition Pairing x y :=
   {| fun u => u = x \/ u = y |}.
@@ -92,6 +76,7 @@ Theorem pairing x y u (u_ : M u):
 Proof.
   by rewrite classify.
 Qed.
+
 
 
 

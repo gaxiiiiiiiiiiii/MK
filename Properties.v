@@ -197,3 +197,22 @@ Proof.
   by apply pairing_set.
   by apply pairing_set.
 Qed.  
+
+Theorem cap_comm x y :
+  x ∩ y = y ∩ x.
+Admitted.
+
+Theorem cup_comm x y :
+  x ∪ y = y ∪ y.
+Admitted.
+
+Theorem cap_assoc x y z :
+  (x ∩ y) ∩ z = x ∪ (y ∪ z).
+Admitted.
+
+Theorem cup_assoc x y z :
+  (x ∪ y) ∪ z = x ∪ (y ∪ z) .
+Admitted.
+
+
+

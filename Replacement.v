@@ -4,6 +4,11 @@ Require Export Functions.
 Axiom Replacement :
   forall f X, M X ->  Un f -> M (Image f X).  
 
+
+
+
+        
+
 Theorem cap_set X Y (X_ : M X)  :
     M (X ∩ Y).
 Proof.
@@ -106,7 +111,7 @@ Definition Value f x :=
     {| fun i => forall y, M y -> <|x,y|> ∈ f -> i ∈ y|}.
 
 Theorem value f x :
-  Un f -> x ∈ Dom f -> <|x, Value f x|>  ∈ f.
+  Un f -> x ∈ Dom f -> <|x, Value f x|>  ∈ f /\ M (Value f x).
 Proof.
   intros unf H.
   assert (x_ : M x) by (by exists (Dom f)).
@@ -128,4 +133,250 @@ Proof.
       apply i_.
   + by rewrite <- y_fx.
   + done.
-Qed.     
+Qed.  
+
+Theorem value_set f x :
+    Un f -> x ∈ Dom f -> M (Value f x).
+Proof.
+  intros unf domf.
+  by induction (value f x unf domf).
+Qed.
+  
+  
+
+
+
+
+
+
+Theorem dom_set x (x_ : M x):
+    M (Dom x).
+Proof.
+  assert (H : (Dom x) ⊆ (⊔ ⊔ x)).
+  + intros i H.
+    assert (i_ : M i) by (by exists (Dom x)).
+    apply union.
+    exists (Single i).
+    split.
+    by apply single.
+    apply union.
+    apply dom in H.
+    induction H as [j]; induction H as [j_].
+    exists (<|i,j|>).
+    split.
+    - apply op.
+      done.      
+      done.
+      by apply pairing_set.
+      by apply or_introl.
+    - done.
+    - done.
+  + apply (sub_set (Dom x) (⊔ ⊔ x)).
+    by repeat apply union_set.
+    done.
+Qed.
+
+Theorem ran_set x (x_ : M x) :
+    M (Ran x).
+Proof.
+  assert (H : Ran x ⊆ ⊔ ⊔ x).
+  + intros v H.    
+    assert (v_ : M v) by (by exists (Ran x)).
+    apply ran in H.
+    induction H as [u]; induction H as [u_ uv_x].
+    apply union.
+    exists (Pairing u v).
+    split.
+    by apply couple.
+    apply union.
+    exists (<|u,v|>).
+    split.
+    apply couple.
+    by apply pairing_set.
+    by apply pairing_set.
+    done.
+    done.
+  + apply (sub_set (Ran x) (⊔ ⊔ x)) .
+    by repeat apply union_set.
+    done.
+Qed.
+
+Theorem cup_set x y (x_ : M x) (y_ : M y):
+  M (x ∪ y).
+Proof.
+  assert (H : (x ∪ y) ⊆ (⊔ (Pairing x y))).
+  + intros i i_xy.
+    assert (i_ : M i) by (by exists (x ∪ y)).
+    apply union.
+    apply cup in i_xy.
+    induction i_xy as [ix | iy].
+    - exists x.
+      apply (conj ix) .
+      apply (pairing x y x x_).
+      by apply or_introl.
+    - exists y.
+      apply (conj iy).
+      apply(pairing x y y y_).
+      by apply or_intror.
+  + apply (sub_set _ (⊔ (Pairing x y))).
+    apply union_set.
+    by apply pairing_set.
+    done.
+Qed.    
+
+
+
+  
+
+Theorem product_set x y (x_ : M x) (y_ : M y) :
+    M (x × y).
+Proof.
+  assert (H : (x × y) ⊆ (Power (Power (x ∪ y)))).
+  + intros i i_xy.
+    assert (i_ : M i) by (by exists (x × y)).
+    apply power.
+    done.
+    intros j j_i.
+    assert (j_ : M j) by (by exists i).
+    apply power.
+    done.
+    intros k k_j.
+    apply cup.
+    apply product in i_xy.
+    induction i_xy as [x0]; induction H as [y0].
+    induction H as [x0_]; induction H as [y0_].
+    induction H as [i_x0y0]; induction H as [x0x y0y].
+    rewrite i_x0y0 in j_i.
+    apply op in j_i.
+    induction j_i as [j_xx | j_xy].
+    - subst j.
+      apply in_single in k_j.
+      apply or_introl.
+      by subst k.
+      by exists (Single x0).
+      done.
+    - subst j.
+      apply pairing in k_j.
+      induction k_j as [kx | ky].
+      * apply or_introl.
+        by subst k.
+      * apply or_intror.
+        by subst k.
+      * by exists (Pairing x0 y0).
+    - done.
+    - done.
+    - done.
+  + apply (sub_set _ (Power (Power (x ∪ y)))).
+    repeat apply power_set.
+    by apply cup_set.
+    done.
+Qed.    
+      
+Goal forall f, M (Dom f) -> M (Ran f) -> Rel f -> M f.
+Proof.
+  intros f domf_ ranf_ relf.
+  assert (H : f ⊆ (Power (Power ((Dom f) ∪  (Ran f))))).
+  + intros i i_f.
+    assert (i_ : M i) by (by exists f).
+    apply power.
+    done.
+    intros j j_i.
+    apply power.
+    by exists i.
+    intros k k_j.
+    apply cup.
+    specialize (relf i i_f).
+    apply product in relf.
+    induction relf as [x]; induction H as[y].
+    induction H as [x_]; induction H as [y_].
+    induction H as [i_xy _].
+    subst i.
+    apply op in j_i.    
+    induction j_i as [j_xx | j_xy].
+    - subst j.
+      apply in_single in k_j.
+      subst k.
+      apply or_introl.
+      apply dom.
+      done.
+      by exists y.
+      by exists (Single x).
+      done.
+    - subst j.
+      apply pairing in k_j.
+      induction k_j as [kx | ky].
+      * subst k.
+        apply or_introl.
+        apply dom.
+        done.
+        by exists y.
+      * subst k.
+        apply or_intror.
+        apply ran .
+        done.
+        by exists x.
+      * by exists (Pairing x y) .
+    - done.
+    - done.
+    - by exists (<|x,y|>).
+  + apply (sub_set f  (Power (Power ((Dom f) ∪ (Ran f))))).
+    repeat apply power_set.
+    by apply cup_set.
+    done.
+Qed.
+
+Goal forall x, M x -> forall f, Fnc f -> M (Image f x).
+Proof.
+  intros x x_ f fncf.
+  apply Replacement.
+  done.
+  apply fncf.
+Qed.  
+
+
+Theorem caps_set X :
+  X <> ∅ -> M (⊓ X).
+Proof.
+  intro not_empty.
+  assert (ex_x : exists x, x ∈ X).
+  + move : not_empty.
+    apply contrapositive.
+    rewrite <- allnot_notexists.
+    intro H.
+    apply DoubleNegative.
+    apply equal => x.
+    split => [h | h].
+    - case (H x h).
+    - assert (x_ : M x) by (by exists ∅).
+      specialize (empty x x_) as emp.      
+      case (emp h).
+  + induction ex_x as [x xX].
+    assert (H : ⊓ X ⊆ x).
+    - intros i iX.
+      assert (i_ : M i) by (by exists (⊓ X)).
+      move : iX.
+      rewrite caps.
+      by apply.
+      done.
+    - apply (sub_set _ x).
+      by exists X.
+      done.
+Qed.
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+ 
