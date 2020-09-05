@@ -192,26 +192,7 @@ Qed.
 Axiom power_set :
   forall x, M x -> M (Power x).
 
-Definition Inverse f :=
-  {| fun u => exists x y, M x /\ M y /\ u = <|x,y|> /\ <|y,x|> ∈ f|}.
-Notation "f ¹"  := (Inverse f) (at level 5).
 
-Theorem inverse f u :
-  u ∈ f¹ <-> exists x y, M x /\ M y /\ u = <|x,y|> /\ <|y,x|> ∈ f.
-Proof.
-  split => [H | H].
-  + assert (u_ : M u) by (by exists f¹).
-    by apply (classify (fun u => exists x y, M x /\ M y /\ u = <|x,y|> /\ <|y,x|> ∈ f)) in H.
-  + induction H as [x]; induction H as [y].
-    induction H as [x_]; induction H as [y_].
-    induction H as [u_xy uf].
-    subst u.
-    apply (classify (fun u => exists x y, M x /\ M y /\ u = <|x,y|> /\ <|y,x|> ∈ f)).
-    apply pairing_set.
-    by apply pairing_set.
-    by apply pairing_set.
-    by exists x; exists y.    
-Qed.
 
 Definition Union X :=
   {| fun x => exists Y, x ∈ Y /\ Y ∈ X|}.

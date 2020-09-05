@@ -40,7 +40,6 @@ Qed.
 
 
 
-Definition Un₁ X := Un X /\ Un (X¹).
 
 Definition Image X Y :=
   Ran (X ∥ Y).

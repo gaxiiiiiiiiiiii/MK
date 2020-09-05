@@ -146,9 +146,6 @@ Qed.
 
 
 
-
-
-
 Theorem dom_set x (x_ : M x):
     M (Dom x).
 Proof.
@@ -362,6 +359,41 @@ Proof.
       by exists X.
       done.
 Qed.
+
+Definition Inverse f :=
+  {: (Ran f) × (Dom f) |
+   fun u => exists x y, M x /\ M y /\ u = <|x,y|> /\ <|y,x|> ∈ f 
+  :}.
+
+Theorem inverse f u :
+  u ∈ Inverse f <-> exists x y, M x /\ M y /\ u = <|x,y|> /\ <|y,x|> ∈ f.
+Proof.
+  split => [H | H].
+  + assert (u_ : M u) by (by exists (Inverse f)).
+    apply separation in H.
+    by induction H as [H H0].
+  + induction H as [x]; induction H as [y].
+    induction H as [x_]; induction H as [y_].
+    induction H as [u_xy uf].
+    subst u.
+    apply separation.
+    split.
+    - apply product.
+      exists x; exists y.
+      refine (conj x_ (conj y_ _)).
+      apply conj. done.
+      split.
+      * apply ran.
+        done.
+        by exists y.
+      * apply dom.
+        done.
+        by exists x.
+    - by exists x; exists y.
+Qed.
+
+
+Definition Un₁ X := Un X /\ Un (Inverse X).
 
 
 
