@@ -374,6 +374,138 @@ Proof.
 Qed.  
 
 
+Definition Identity X :=
+  {: X × X | fun u => exists x, x ∈ X /\ u = <|x,x|>:}.
+
+Theorem identity X u :
+  u ∈ Identity X <->  exists x, x ∈ X /\ u = <|x,x|>.
+Proof.
+  split => [H | H].
+  (* + assert (u_ : M u) by (by exists (Identity X)). *)
+  + apply separation in H.
+    by induction H.
+  + induction H as [x]; induction H as [Xx u_xx].
+    assert (x_ : M x) by (by exists X).
+    rewrite separation.
+    split.
+    - rewrite product.
+      by exists x; exists x.
+    - by exists x.
+Qed.
+
+Theorem identity_set X :
+  M X -> M (Identity X).
+Proof.
+  intro X_.
+  apply separation_set.
+  by apply product_set.
+Qed.
+
+Theorem inverse_composition_left f A B :
+  f : A → B -> (Inverse f) : B → A -> (Inverse f) ○ f = Identity A.
+Proof.
+  intros fAB fBA.
+  rewrite equal => p.
+  rewrite composition.
+  rewrite identity.
+  split => [H | H].
+  + induction H as [x]; induction H as [y]; induction H as [z].
+    induction H as [x_]; induction H as [y_]; induction H as [z_].
+    induction H as [p_xz]; induction H as [xy_f yz_f].
+    apply inverse in yz_f.
+    induction yz_f as [x0]; induction H as [y0].
+    induction H as [x0_]; induction H as [y0_].
+    induction H as [yzyz zy_f].
+    apply (OP_eq y z x0 y0 y_ z_ x0_ y0_) in yzyz; clear x0_ y0_.
+    induction yzyz; subst x0 y0.
+    assert (x = z).
+    - induction fBA.
+      induction H.
+      apply (H1 y x z y_ x_ z_).
+      * rewrite inverse.
+        by exists y; exists x.
+      * rewrite inverse.
+        by exists y; exists z.
+    - subst z.
+      exists x.
+      split.
+      * induction fAB.
+        induction H0.
+        rewrite <- H0.
+        apply dom.
+        done.
+        by exists y.
+      * done.
+  + induction H as [x]; induction H as [xA p_xx].
+    induction fAB.
+    induction H.
+    induction H0.
+    assert (x_ : M x) by (by exists A).
+    assert (<|x,Value f x|> ∈ f).
+    - apply (value f x H1).
+      by rewrite <- H0 in xA.
+    - assert (<|Value f x, x|> ∈ Inverse f).
+      assert (M (Value f x)).
+      apply value_set.
+      apply H1.
+      by rewrite <- H0 in xA.
+      * apply inverse.
+        by exists (Value f x); exists x.
+      * exists x; exists (Value f x); exists x.
+        split.
+        done.
+        split.
+        apply value_set.
+        apply H1.
+        by rewrite <- H0 in xA.
+        done.
+Qed.
+
+Theorem inverse_composition_right f A B :
+  f : A → B -> (Inverse f) : B → A -> f ○ (Inverse f) = Identity B.
+Admitted.
+
+Theorem double_inverse f:
+    Rel f -> Inverse (Inverse f) = f.
+Proof.
+  intro relf.
+  apply equal => i.
+  rewrite inverse.
+  split => [H | H].
+  + induction H as [x]; induction H as [y].
+    induction H as [x_]; induction H as [y_].
+    induction H as [i_xy yx_f].
+    apply (in_inverse f y x y_ x_) in yx_f.
+    by rewrite <- i_xy in yx_f.
+  + specialize (relf i H).
+    apply product in relf.
+    induction relf as [x]; induction H0 as [y].
+    induction H0 as [x_]; induction H0 as [y_].
+    induction H0 as [i_xy _].
+    exists x; exists y.
+    refine (conj x_ (conj y_ (conj i_xy _))).
+    apply inverse.
+    rewrite i_xy in H.
+    by exists y; exists x.
+Qed.
+
+
+
+
+   
+
+
+
+
+
+
+
+    
+
+
+
+
+
 
 
 
