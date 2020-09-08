@@ -203,7 +203,7 @@ Theorem cap_comm x y :
 Admitted.
 
 Theorem cup_comm x y :
-  x ∪ y = y ∪ y.
+  x ∪ y = y ∪ x.
 Admitted.
 
 Theorem cap_assoc x y z :
@@ -216,6 +216,7 @@ Admitted.
 
 
   
+
 
 
 
