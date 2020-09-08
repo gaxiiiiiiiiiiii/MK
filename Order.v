@@ -89,7 +89,7 @@ Proof.
     by apply classify.
 Qed.    
 
-Theorem on_trnas X:
+Theorem ontrans X:
     X ∈ ON -> X ⊆ ON.
 Proof.
   intros XON x xX.
@@ -340,20 +340,16 @@ Theorem on_tri a b (a_ : a ∈ ON) (b_ : b ∈ ON) :
 Proof.
   pose (a ∩ b) as u.
   specialize (cap_on a b a_ b_) as u_.
-
   assert (u ⊆  a).
   intros i iu.  
   apply cap in iu.
   apply iu.
-
   assert (u ⊆ b).    
   intros i iu.
   apply cap in iu.
   apply iu.
-
   apply (sub_on u a u_ a_) in H.
   apply (sub_on u b u_ b_) in H0.
-
   induction H as [ua | ua].
   - induction H0 as [ub | ub].  
     + apply on in u_.
@@ -438,6 +434,8 @@ Proof.
       * by exists X.
 Qed.
 
+
+
 Theorem cap_min a b (aON : a ∈ ON) (bON : b ∈ ON) :
   a ∈ b -> a = a ∩ b.
 Proof.  
@@ -472,9 +470,34 @@ Proof.
     - done.
 Qed.
 
-              
+
 
 Theorem cup_on a b (aON : a ∈ ON) (bON : b ∈ ON) :
   a ∪ b ∈ ON.
-Proof.
+Proof.  
+  specialize (on_tri a b aON bON) as H.
+  induction H as [ab | H].
+  + specialize (cup_max a b aON bON ab) as H.
+    by rewrite <- H.
+  + induction H as [ba | ab].
+    - specialize (cup_max b a bON aON ba) as H.
+      rewrite cup_comm.
+      by rewrite <- H.
+    - rewrite ab.
+      assert (b ∪ b = b).
+        apply equal.
+        intro i.
+        rewrite cup.
+        split => [H | H].
+        * by induction H.
+        * by apply or_introl.
+        * by rewrite H.
+Qed.          
+
+
+
+
+
+  
+
   
