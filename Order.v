@@ -492,12 +492,135 @@ Proof.
         * by induction H.
         * by apply or_introl.
         * by rewrite H.
-Qed.          
+Qed.      
+
+Theorem union_on X (XON : X ∈ ON) :
+  X <> ∅ -> ⊔ X ∈ ON.
+Proof.
+  intro X0.
+  apply not_empty in X0.
+  induction X0 as [a aX].
+  assert (X_ : M X) by (by exists ON).
+  assert (H0 : forall x, x ∈ ⊔ X -> x ∈ ON).
+    intros x H.
+    apply union in H.
+    induction H as [Y]; induction H as [xY YX].
+    specialize (ontrans X XON) as H0.
+    specialize (H0 Y YX).
+    specialize (ontrans Y H0) as H1 .
+    by specialize (H1 x xY).
+  apply on.
+  by apply union_set.
+  specialize (ontrans X XON) as X_ON.
+  apply (on X X_) in XON.
+  induction XON as [tr we].
+  split.
+  + intros x H i ix.
+    apply union in H.
+    induction H as [Y]; induction H as [xY YX].
+    apply union.
+    exists Y.
+    split.
+    - specialize ((X_ON Y YX)).
+      assert (Y_ : M Y) by (by exists ON).
+      apply (on Y Y_) in X_ON.
+      induction X_ON.
+      by specialize ((H x xY) i ix).
+    - done.
+  + induction we.
+    induction H.
+    induction H2.
+    induction H as [R tra].
+    induction H2 as [_ nonrefl].
+    induction H3 as [_ tri].
+    split.
+    - split.
+      * apply (conj R). 
+        intros x y z x_ y_ z_.
+        apply (H0 x) in x_.
+        apply (H0 y) in y_.
+        apply (H0 z) in z_.
+        assert (x__ : M x) by (by exists ON).
+        assert (y__ : M y) by (by exists ON).
+        assert (z__ : M z) by (by exists ON).
+        apply (on x x__) in x_.
+        apply (on y y__) in y_.
+        apply (on z z__) in z_.
+        rewrite (inrel x y x__ y__).
+        rewrite (inrel y z y__ z__).
+        rewrite (inrel x z x__ z__).
+        apply (on_trans x y z x_ y_ z_).
+      * split.
+          (* NonRefl *)
+          apply (conj R).
+          intros x H.
+          specialize (H0 x H).
+          assert (x_ : M x) by (by exists ON).
+          apply (on x x_) in H0.
+          rewrite (inrel x x x_ x_).
+          apply (on_notrefl x H0).
+          (* tri *)
+          apply (conj R).
+          intros x y x__ y__.
+          apply (H0 x) in x__.
+          apply (H0 y) in y__.
+          assert (x_ : M x) by (by exists ON).
+          assert (y_ : M y) by (by exists ON).       
+          rewrite (inrel x y x_ y_).
+          rewrite (inrel y x y_ x_).
+          apply (on_tri x y x__ y__) .
+    - intros x x0 x_X.
+        apply (not_empty x ) in x0.
+        induction x0 as [i ix].
+        specialize (x_X i ix) as H10.
+        apply union in H10.
+        induction H10 as [Y].
+        induction H as [iY YX].
+        specialize ((tr Y YX) i iY) as iX.
+        assert (x ∩ X ⊆ X).
+          intros j H.
+          apply cap in H.
+          apply H.
+        assert (i ∈ x ∩ X).
+          by apply cap.
+        assert (x ∩ X <> ∅).
+          apply not_empty.
+          by exists i.        
+        specialize (H1 (x ∩ X) H3 H).
+        induction H1 as [j].
+        induction H1.
+        apply cap in H1.
+        induction H1.
+        exists j.
+        apply (conj H1).
+        intro.
+        apply H4.
+        induction H6 as [k].        
+        induction H6.
+        specialize (x_X k H6).
+        apply union in x_X.
+        induction x_X as [Z].
+        induction H8.
+        specialize ((tr Z H9) k H8).
+        assert (k ∈ x ∩ X).
+          by apply cap.
+        by exists k.
+Qed.        
+        
+
+
+        
+      
 
 
 
+    
+      
+      
 
 
-  
+    
 
-  
+
+
+   
