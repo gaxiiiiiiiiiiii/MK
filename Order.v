@@ -605,22 +605,325 @@ Proof.
         assert (k ∈ x ∩ X).
           by apply cap.
         by exists k.
-Qed.        
+Qed.   
+
+
+
+Theorem caps_on X (XON : X ∈ ON) :
+  X <> ∅ -> ⊓ X ∈ ON.
+Proof.
+  intro X0.
+  apply not_empty in X0 as H0.
+  induction H0 as [a aX].
+  assert (X_ : M X) by (by exists ON).
+  apply on.
+  apply (caps_set X X0).
+  apply (on X X_) in XON as H.
+  induction H.
+  split.
+  + intros x x_X i ix.
+    apply caps.
+    by exists x.
+    intros Y YX.
+    assert (x_ : M x) by (by exists (⊓ X)).
+    move : x_X.
+    rewrite (caps X x x_).
+    intro.
+    specialize (H1 Y YX).
+    specialize (ontrans X XON) as X_ON.
+    specialize (X_ON Y YX).
+    assert (Y_ : M Y) by (by exists ON).
+    apply (on Y Y_) in X_ON.
+    induction X_ON.
+    by specialize ((H2 x H1) i ix).
+  + induction H0.
+    induction H0.
+    induction H0 as [R tra].
+    induction H2.
+    induction H0 as [_ nr].
+    induction H2 as [_ tri].
+    assert (forall x , x ∈ ⊓ X -> x ∈ ON).
+      intros x x_X.
+      assert (x_ : M x) by (by exists (⊓ X)).
+      move : x_X.
+      rewrite caps.
+      intro.      
+      specialize (H0 a aX).
+      specialize (ontrans X XON) as H2.
+      specialize ((H a aX) x H0).
+      by specialize (H2 x H).
+      done.
+    split.
+    - split.
+      * apply (conj R).
+        intros x y z x__ y__ z__.
+        apply (H0 x) in x__.        
+        apply (H0 y) in y__.
+        apply (H0 z) in z__.
+        assert (x_ : M x) by (by exists ON).
+        assert (y_ : M y) by (by exists ON).
+        assert (z_ : M z) by (by exists ON).
+        rewrite (inrel x y x_ y_).
+        rewrite (inrel y z y_ z_).
+        rewrite (inrel x z x_ z_).
+        apply (on x x_) in x__.        
+        apply (on y y_) in y__.
+        apply (on z z_) in z__.
+        apply (on_trans x y z x__ y__ z__).
+      * split.
+          (* NonRefl *)
+          apply (conj R).
+          intros x x_X.
+          apply (H0 x) in x_X.
+          assert (x_ : M x) by (by exists ON).
+          apply (on x x_) in x_X.
+          rewrite (inrel x x x_ x_).
+          apply (on_notrefl x x_X).
+          (* Tri *)
+          apply (conj R).
+          intros x y xX yX.
+          apply (H0 x) in xX.
+          apply (H0 y) in yX.
+          assert (x_ : M x) by (by exists ON).
+          assert (y_ : M y) by (by exists ON).
+          rewrite (inrel x y x_ y_).
+          rewrite (inrel y x y_ x_).
+          apply (on_tri x y xX yX).
+    - intros x x0 x_X.      
+      apply not_empty in x0 as H2.
+      induction H2 as [i ix].
+      apply (x_X i) in ix as H10.
+      assert (i_ : M i) by (by exists x).
+      move : H10.
+      rewrite (caps X i i_).
+      intro.
+      assert ((X ∩ x) ⊆ X).
+        intros k Hk.
+        apply cap in Hk.
+        apply Hk.
+      assert (X ∩ x <> ∅).
+        intro.
+        specialize (H2 a aX).
+        specialize ((H a aX) i H2).
+        assert (i ∈ (X ∩ x)).
+          by apply cap.
+        rewrite H4 in H5.
+        case ((empty i i_) H5).
+      specialize (H1 (X ∩ x) H4 H3).
+      induction H1 as [j].
+      induction H1.
+      apply cap in H1; induction H1.
+      exists j.
+      apply (conj H6).
+      intro.
+      apply H5.
+      induction H7 as [k].
+      induction H7 as [kx kj].
+      specialize (x_X k kx).
+      move : x_X.
+      rewrite caps.
+      intro.
+      specialize (H7 a aX).
+      specialize ((H a aX) k H7).
+      exists k.
+      split.
+      by apply cap.
+      done.
+      by exists x.
+Qed.
+
+
+
+
+
+
+Theorem suc_on X (XON : X ∈  ON) :
+  suc X ∈ ON.
+Proof.
+  assert (X_ : M X) by (by exists ON).  
+  assert (M (suc X)) as H0.
+    apply cup_set.
+    done.
+    apply pairing_set.
+    done.
+    done.
+  apply (on (suc X) H0).
+  apply (on X X_) in XON as H.
+  split.
+  + intros x Hx i ix.
+    rewrite cup.
+    apply cup in Hx.
+    induction Hx as [xX | x_X].
+    - apply or_introl.
+      induction H.
+      by specialize ((H x xX) i ix).
+    - assert (x_ : M x) by (by exists (Single X)).
+      apply (in_single x X x_ X_) in x_X.
+      subst x.
+      by apply or_introl.
+  + induction H.
+    induction H1.
+    induction H1.    
+    induction H1.
+    induction H3.    
+    induction H3 as[_  H3].
+    induction H5 as [_ H5].
+    assert (forall x, x ∈ X -> x ∈ ON).
+      intros x xX.
+      by specialize ((ontrans X XON) x xX).
+    assert (forall x, x ∈ Single X -> x ∈ ON).
+      intros x xX.      
+      assert (x_ : M x) by (by exists (Single X)).
+      apply (in_single x X x_ X_) in xX.
+      by subst x.
+    assert (forall x, x ∈ suc X -> x ∈ ON).
+      intros x Hx.
+      apply cup in Hx.
+      induction Hx as [xX | xX].
+        apply (H6 x xX).
+        apply (H7 x xX).
+    split.
+    - split.
+      * apply (conj H1).
+        intros x y z xX yX zX.
+        apply (H8 x) in xX.
+        apply (H8 y) in yX.
+        apply (H8 z) in zX.               
+        assert (x_ : M x) by (by exists ON).
+        assert (y_ : M y) by (by exists ON).
+        assert (z_ : M z) by (by exists ON).
+        apply (on x x_) in xX.
+        apply (on y y_) in yX.
+        apply (on z z_) in zX.        
+        rewrite (inrel x y x_ y_).
+        rewrite (inrel y z y_ z_).
+        rewrite (inrel x z x_ z_).
+        apply (on_trans x y z xX yX zX).
+      * split.
+        (* NOnRefl *)
+        apply (conj H1).
+        intros x Hx.        
+        apply (H8 x) in Hx.
+        assert (x_ : M x) by (by exists ON).
+        apply (on x x_) in Hx.
+        rewrite (inrel x x x_ x_).
+        by apply on_notrefl.
+        (* Tri *)
+        apply (conj H1).
+        intros x y xX yX.
+        apply (H8 y) in yX.
+        apply (H8 x) in xX.
+        assert (x_ : M x) by (by exists ON).
+        assert (y_ : M y) by (by exists ON).
+        rewrite (inrel x y x_ y_).
+        rewrite (inrel y x y_ x_).
+        by apply on_tri.
+    - intros x x0 Hx.
+      apply not_empty in x0 as H9.
+      induction H9 as [i ix].
+      apply (Hx i) in ix as H10.
+      apply cup in H10.
+      assert (X ∩ x ⊆ X).
+        intros j Hj.
+        apply cap in Hj.
+        apply Hj.      
+        case (ExcludedMiddle (X = ∅)) as [X0 | notX0].
+        * subst X.
+          assert (i_ : M i) by (by exists x).
+          induction H10.
+          case ((empty i i_) H10).
+          apply (in_single) in H10.
+          subst i.
+          exists ∅.
+          apply (conj ix).
+          intro.
+          induction H10 as [y].
+          induction H10 as [yx y0].
+          move : y0.
+          rewrite inrel.
+          apply empty.
+          by exists x.
+          by exists x.
+          apply empty_set.
+          done.
+          apply empty_set.
+        * case (ExcludedMiddle (X ∩ x = ∅)) as [Xx0 | Xx0].
+          (* X ∩ x = ∅ *)
+          assert (i_ : M i) by (by exists x).
+          induction H10.
+          assert (i ∈ ∅).
+            rewrite <- Xx0.
+            by rewrite cap.          
+          case ((empty i i_) H11).
+          apply (in_single i X i_ X_) in H10.
+          subst i.
+          exists X.
+          apply (conj ix).
+          intro.
+          induction H10 as [y]; induction H10 as [yx yX].
+          apply (empty y).
+          by exists x.          
+          rewrite <- Xx0.
+          apply (inrel y X) in yX.
+          by apply cap.
+          by exists x.
+          done.
+          (* X ∩ x <> ∅ *)
+          specialize (H2 (X ∩ x) Xx0 H9).
+          induction H2 as [min].
+          induction H2.          
+          apply cap in H2.
+          induction H2.
+          exists min.
+          apply (conj H12).
+          intro.
+          apply H11.
+          induction H13 as [y]; induction H13 as [yx ymin].
+          specialize (Hx y yx).
+          apply cup in Hx.
+          induction Hx.
+          exists y.
+          by rewrite cap.
+          apply in_single in H13.
+          subst y.
+          specialize (H min H2).
+          apply (inrel X min) in ymin.
+          specialize (H X ymin).
+          assert (~ X ∈ X).
+            apply on_notrefl.
+            rewrite <- (on X X_).
+            apply XON.
+          case (H13 H).
+          done.
+          by exists X.
+          by exists x.
+          done.
+Qed.
+
+
+
+
+
+
+          
+
+      
+
+                
+
         
 
 
         
-      
+
+          
 
 
 
-    
-      
-      
-
-
-    
 
 
 
-   
+
+
+
+     
