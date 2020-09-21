@@ -218,7 +218,7 @@ Proof.
   + apply (sub_set _ (⊔ (Pairing x y))).
     apply union_set.
     by apply pairing_set.
-    done.
+    done. 
 Qed.    
 
 
@@ -394,6 +394,14 @@ Qed.
 
 
 Definition Un₁ X := Un X /\ Un (Inverse X).
+
+
+
+
+
+
+    
+
 
 
 

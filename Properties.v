@@ -214,6 +214,97 @@ Theorem cup_assoc x y z :
   (x ∪ y) ∪ z = x ∪ (y ∪ z) .
 Admitted.
 
+Theorem union_pairing x y (x_ : M x) (y_ : M y):
+  x ∪ y = ⊔ (Pairing x y).
+Proof.
+  apply equal => i.
+  split => [H | H].
+  + assert (i_ : M i) by (by exists (x ∪ y)) .
+    apply cup in H.
+    apply union.
+    induction H as [ix | iy].
+    - exists x.
+      apply (conj ix).
+      apply (pairing x y x).
+      done.
+      by apply or_introl.
+    - exists y.
+      apply (conj iy).
+      apply (pairing x y y).
+      done.
+      by apply or_intror.
+  + apply union in H.
+    induction H as[u].
+    induction H as [iu u_xy].
+    apply pairing in u_xy.
+    apply cup.
+    induction u_xy as [ux | uy].
+    - subst u.
+      by apply or_introl.
+    - subst u.
+      by apply or_intror.
+    - by exists (Pairing x y).
+Qed.
+
+Theorem caps_pairing x y (x_ : M x) (y_ : M y) :
+  x ∩ y = ⊓ (Pairing x y).
+Proof.
+  apply equal => i.
+  split => [H | H].
+  + assert (i_ : M i) by (by exists (x ∩ y)).
+    apply cap in H.
+    induction H as [ix iy].
+    apply caps.
+    done.
+    intros u Hu.
+    apply pairing in Hu.
+    induction Hu as [ux | uy].
+    - by subst u.
+    - by subst u.
+    - by exists (Pairing x y).
+  + assert (i_ : M i) by (by exists (⊓ (Pairing x y))).
+    move : H.
+    rewrite caps.
+    intro.
+    apply cap.
+    split.
+    - apply (H x).
+      apply pairing.
+      done.
+      by apply or_introl.
+    - apply (H y).
+      apply pairing.
+      done.
+      by apply or_intror.
+    - done.
+Qed.
+
+
+
+
+
+
+
+
+
+    
+
+
+
+    
+
+ 
+
+
+
+     
+
+
+
+ 
+
+
+
 
   
 

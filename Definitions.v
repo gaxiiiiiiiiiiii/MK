@@ -62,6 +62,8 @@ Proof.
   by rewrite classify.
 Qed.
 
+
+
 Definition Cup X Y :=
     ((X ^c) ∩ (Y ^c)) ^c.
 Notation "X ∪ Y" := (Cup X Y) (at level 10).    
@@ -113,7 +115,10 @@ Proof.
   + rewrite comple.
     by apply empty.
     done.
-Qed.    
+Qed.   
+
+
+
 
 
 
@@ -222,7 +227,7 @@ Definition Caps X :=
 Notation "⊓ X" := (Caps X) (at level 10).
 
 Theorem caps X x (x_ : M x) :
-    x ∈ ⊓ X <-> forall Y, Y ∈ X -> x ∈ Y.
+    x ∈ ⊓ X <-> (forall Y, Y ∈ X -> x ∈ Y).
 Proof.
   by rewrite classify.
 Qed.

@@ -97,3 +97,17 @@ Proof.
     apply Px.
 Qed.
 
+
+
+
+Theorem implicate {A B : Prop}:
+  (A -> B) <-> (~ A \/ B).
+Proof.
+  split => [H | H a].
+  + case (ExcludedMiddle A) as [a | nota].
+    - apply (or_intror (H a)).
+    - apply (or_introl nota).
+  + induction H as [nota | b].
+    - case (nota a).
+    - done.
+Qed.    
