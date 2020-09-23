@@ -1,4 +1,43 @@
-Require Export Infinity.
+Require Export Values.
+
+
+Definition Composition g f :=
+  {: (Dom f) × (Ran g) | 
+    fun u => exists x y z, M x /\ M y /\ M z /\
+    u = <|x,z|> /\ <|x,y|> ∈ f /\ <|y,z|> ∈ g
+  :}.
+Notation "g ○ f" := (Composition g f) (at level 10). 
+
+Theorem composition g f u:
+    u ∈ (g ○ f) <-> 
+    exists x y z, M x /\ M y /\ M z /\ u = <|x,z|> /\ <|x,y|> ∈ f /\ <|y,z|> ∈ g.
+Proof.
+  split => [H | H].
+  + assert (u_ : M u) by (by exists (g ○ f)).
+    move : H.
+    rewrite separation.
+    intro H.
+    apply H.
+  + induction H as [x]; induction H as [y]; induction H as [z].
+    induction H as [x_]; induction H as [y_]; induction H as [z_].
+    induction H as [u_xy]; induction H as [xy_f yz_g].
+    assert (u_ : M u).
+    - rewrite u_xy.
+      apply (op_set x z x_ z_).
+    - apply separation.
+      split.
+      apply product.
+      exists x; exists z.
+      refine (conj x_ (conj z_ (conj u_xy _))).
+      split.
+      * apply dom.
+        done.
+        by exists y.
+      * apply ran.
+        done.
+        by exists y.
+      * by exists x; exists y; exists z.        
+Qed.
 
 Definition Irr R A :=
   Rel R /\ forall x, x ∈ A -> ~ <|x,x|> ∈ R.
@@ -25,6 +64,31 @@ Definition We R A :=
     forall Y, Y ⊆ A /\ Y <> ∅ ->
     exists m, m ∈ Y /\ 
     forall y, y ∈ Y /\ y <> m -> <|m,y|> ∈ R /\ ~ <|y,m|> ∈ R.
+
+Definition sim  f W1 W2 :=
+  exists x1 x2 r1 r2, 
+  M x1 /\ M x2 /\ M r1 /\ M r2 /\
+  Rel r1 /\ Rel r2 /\ W1 = <|r1,x1|> /\ W2 = <|r2,x2|> /\
+  Rel f /\ Un₁ f /\ Dom f = x1 /\ Ran f = x2 /\
+  forall u v, u ∈ x1 /\ v ∈ x1 -> <|u,v|> ∈ r1 <-> <|Value f u , Value f v|> ∈ r2.
+
+Definition Sim W1 W2 := exists Z, sim Z W1 W2.
+
+
+Definition Fld R :=
+  Dom R ∪ (Ran R).
+
+  
+Definition TOR R :=
+  Rel R /\ Tot R (Fld R).
+
+  
+Definition WOR R :=
+  Rel R /\ We R (Fld R).
+
+
+
+
 
 Theorem we_con {R A} :
 We R A -> Con R A.
@@ -160,7 +224,10 @@ Qed.
 Theorem sub_trans {X Y Z} :
     X ⊆ Y -> Y ⊆ Z -> X ⊆ Z.
 Proof.
-Admitted.      
+  intros XY YZ i Xi.
+  apply (YZ i (XY i Xi)).
+Qed.  
+
 
 Theorem we_sub {R X Y} :
   We R X -> Y ⊆ X -> We R Y.
@@ -186,4 +253,138 @@ Qed.
 
 
 
+Theorem inverse_sim f X Y :
+    sim f X Y -> sim (Inverse f) Y X.
+Proof.
+  intro.
+  induction H as [x1]; induction H as [x2].
+  induction H as [r1]; induction H as [r2].
+  induction H as [x1_]; induction H as [x2_].
+  induction H as [r1_]; induction H as [r2_].
+  induction H as [rel_r1]; induction H as [rel_r2].
+  induction H as [X_rx]; induction H as [Y_rx].
+  induction H as [rel_f]; induction H as [un_f].
+  induction H as [domf]; induction H as [ranf].
+  exists x2; exists x1; exists r2; exists r1.
+  apply (conj x2_).
+  apply (conj x1_).
+  apply (conj r2_).
+  apply (conj r1_).
+  apply (conj rel_r2).
+  apply (conj rel_r1).
+  apply (conj Y_rx).
+  apply (conj X_rx).
+  split.
+    intros Z ZH.
+    apply inverse in ZH.  
+    induction ZH as [x]. induction H0 as [y].
+    induction H0 as [x_]; induction H0 as [y_].
+    induction H0 as [Z_xy yx_f].
+    apply product.
+    exists x; exists y.
+    by repeat rewrite universe.
+  split.
+    induction un_f.
+    rewrite <- (inverse_inverse rel_f) in H0.
+    apply (conj H1 H0).
+  split.
+    by rewrite dom_inverse.
+  split.
+    by rewrite ran_inverse.
+  intros u2 v2 Huv.
+  induction Huv as [ux2 vx2].
+  assert (u2_ : M u2) by (by exists x2).
+  assert (v2_ : M v2) by (by exists x2).
+  rewrite <- ranf in ux2.
+  apply ran in ux2.
+  induction ux2 as [u]; induction H0 as [u_ uu_f].
+  rewrite <- ranf in vx2.
+  apply ran in vx2.
+  induction vx2 as [v]; induction H0 as [v_ vv_f].
+  assert (u_dom : u ∈ Dom f).
+    apply dom.
+    done.
+    by exists u2.
+  assert (v_dom : v ∈ Dom f).
+    apply dom.    
+    done.
+    by exists v2.
+  induction un_f as [un_f un1_f].
+  apply (eq_value f u u2 u_ u2_ un_f u_dom) in uu_f.
+  apply (eq_value f v v2 v_ v2_ un_f v_dom) in vv_f.
+  subst u2 v2.
+  rewrite <- (value_value f u (conj un_f un1_f) u_dom).
+  rewrite <- (value_value f v (conj un_f un1_f) v_dom).
+  rewrite domf in u_dom.
+  rewrite domf in v_dom.
+  specialize (H u v (conj u_dom v_dom)).
+  by rewrite H.
+  done.
+  done.
+Qed.
+
+Theorem sim_set {f X Y} :
+    sim f X Y -> M f /\ M X /\ M Y.
+Proof.
+  intro H.
+  induction H as [x1]; induction H as [x2].
+  induction H as [r1]; induction H as [r2].
+  induction H as [x1_]; induction H as [x2_].
+  induction H as [r1_]; induction H as [r2_].
+  induction H as [rel_r1]; induction H as [rel_r2].
+  induction H as [X_rx]; induction H as [Y_rx].
+  induction H as [rel_f]; induction H as [un_f].
+  induction H as [domf]; induction H as [ranf].
+  split.
+  + assert (f ⊆ (x1 × x2)).
+    intros i Hi.
+    apply product.
+    specialize (rel_f i Hi).
+    apply product in rel_f.
+    induction rel_f as [x]; induction H0 as [y].
+    induction H0 as [x_]; induction H0 as [y_].
+    induction H0 as [i_xy _].
+    exists x; exists y.
+    apply (conj x_).
+    apply (conj y_).
+    apply (conj i_xy).
+    subst i.
+    split.
+    - rewrite <- domf.
+      apply dom.
+      done.      
+      by exists y.
+    - rewrite <- ranf.
+      apply ran.
+      done.
+      by exists x.
+    - refine (sub_set f (x1 × x2) _ H0).
+      by apply product_set.
+  + subst X Y.
+    split.
+    by apply op_set.
+    by apply op_set.
+Qed.    
+
+Theorem sim_comm X Y :
+  Sim X Y -> Sim Y X.
+Proof.
+  intro.  
+  induction H as [f].
+  exists (Inverse f).
+  by apply inverse_sim.
+Qed.
+
+
+
+
+
+
+
+
+
+
+
   
+    
+      
