@@ -1,43 +1,7 @@
-Require Export Values.
+Require Export Composition.
 
 
-Definition Composition g f :=
-  {: (Dom f) × (Ran g) | 
-    fun u => exists x y z, M x /\ M y /\ M z /\
-    u = <|x,z|> /\ <|x,y|> ∈ f /\ <|y,z|> ∈ g
-  :}.
-Notation "g ○ f" := (Composition g f) (at level 10). 
 
-Theorem composition g f u:
-    u ∈ (g ○ f) <-> 
-    exists x y z, M x /\ M y /\ M z /\ u = <|x,z|> /\ <|x,y|> ∈ f /\ <|y,z|> ∈ g.
-Proof.
-  split => [H | H].
-  + assert (u_ : M u) by (by exists (g ○ f)).
-    move : H.
-    rewrite separation.
-    intro H.
-    apply H.
-  + induction H as [x]; induction H as [y]; induction H as [z].
-    induction H as [x_]; induction H as [y_]; induction H as [z_].
-    induction H as [u_xy]; induction H as [xy_f yz_g].
-    assert (u_ : M u).
-    - rewrite u_xy.
-      apply (op_set x z x_ z_).
-    - apply separation.
-      split.
-      apply product.
-      exists x; exists z.
-      refine (conj x_ (conj z_ (conj u_xy _))).
-      split.
-      * apply dom.
-        done.
-        by exists y.
-      * apply ran.
-        done.
-        by exists y.
-      * by exists x; exists y; exists z.        
-Qed.
 
 Definition Irr R A :=
   Rel R /\ forall x, x ∈ A -> ~ <|x,x|> ∈ R.
@@ -374,6 +338,241 @@ Proof.
   exists (Inverse f).
   by apply inverse_sim.
 Qed.
+
+
+Theorem sim_trans X Y U :
+  Sim X Y -> Sim Y U -> Sim X U.
+Proof.
+  intros XY YU.
+
+  induction XY as [f XY].
+  induction XY as [x1]; induction H as [x2].
+  induction H as [r1]; induction H as [r2].
+  induction H as [x1_]; induction H as [x2_].
+  induction H as [r1_]; induction H as [r2_].
+  induction H as [rel_r1]; induction H as [rel_r2].
+  induction H as [X_rx]; induction H as [Y_rx].
+  induction H as [rel_f]; induction H as [un1_f].
+  induction H as [domf]; induction H as [ranf fXY].
+
+  induction YU as [g YU].
+  induction YU as [y1]; induction H as [y2].
+  induction H as [s1]; induction H as [s2].
+  induction H as [y1_]; induction H as [y2_].
+  induction H as [s1_]; induction H as [s2_].
+  induction H as [rel_s1]; induction H as [rel_s2].
+  induction H as [Y_sy]; induction H as [U_sy].
+  induction H as [rel_g]; induction H as [un1_g].
+  induction H as [domg]; induction H as [rang gYU].
+
+  exists (g ○ f).
+  exists x1; exists y2.
+  exists r1; exists s2.
+  apply (conj x1_); apply (conj y2_).
+  apply (conj r1_); apply (conj s2_).
+  apply (conj rel_r1); apply (conj rel_s2).
+  apply (conj X_rx); apply (conj U_sy).
+  split.
+    intros i H.
+    apply composition in H.
+    induction H as [x]; induction H as [y]; induction H as [z].
+    induction H as [x_]; induction H as [y_]; induction H as [z_].
+    induction H as [Hi].
+    apply product.
+    exists x; exists z.
+    by repeat rewrite universe.
+  split.
+    induction un1_f.
+    induction un1_g.
+    split.
+    by apply un_composition.
+    rewrite inverse_composition.
+    by apply un_composition.
+  rewrite Y_sy in Y_rx.
+  apply (OP_eq s1 y1 r2 x2 s1_ y1_ r2_ x2_) in Y_rx.
+  induction Y_rx.
+  subst s1.
+  rewrite H0 in domg.
+  rewrite <- domg in ranf.
+
+  split.
+    rewrite <- domf.
+    apply equal => x.
+    split => [H | H].
+      (* -> *)
+      assert (x_ : M x) by (by exists (Dom (g ○ f))).
+      apply dom in H.
+      induction H as [z]; induction H as [z_].
+      apply in_composition in H.
+      induction H as [y]; induction H as [y_].
+      induction H as [xy_f _].
+      apply dom.
+      done.
+      by exists y.
+      (* <- *)
+      done.
+      done.
+      done.
+      assert (x_ : M x) by (by exists (Dom f)).
+      apply dom in H.
+      induction H as [y]; induction H as [y_ xy_f].
+      apply dom.
+      done.
+      assert (y ∈ Dom g).
+        rewrite <- ranf.
+        apply ran.
+        done.
+        by exists x.
+      apply dom in H.
+      induction H as [z]; induction H as [z_ yz_g].
+      exists z.
+      apply (conj z_).
+      apply in_composition.
+      done.
+      done.
+      by exists y.
+      done.
+      done.
+  split.
+    rewrite <- rang.
+    apply equal => z.
+    split => [H | H].
+      (* -> *)
+      assert (z_ : M z) by (by exists (Ran (g ○ f))).
+      apply ran in H.
+      induction H as [x]; induction H as [x_ H].
+      apply in_composition in H.
+      induction H as [y]; induction H as [y_].
+      induction H as [xy_f yz_g].
+      apply  ran.
+      done.
+      by exists y.
+      done.
+      done.
+      done.
+      (* <- *)
+      assert (z_ : M z) by (by exists (Ran g)).
+      apply ran in H.
+      induction H as [y]; induction H as [y_ yz_g].
+      apply ran.
+      done.
+      assert (y ∈ Ran f).
+        rewrite ranf.
+        apply dom.
+        done.
+        by exists z.
+      apply ran in H.
+      induction H as [x]; induction H as [x_ xy_f].
+      exists x.
+      apply (conj x_).
+      apply in_composition.
+      done.
+      done.
+      by exists y.
+      done.
+      done.
+  intros u v Huv.
+  subst y1.
+  rewrite (fXY u v Huv).
+  assert (H : forall x, x ∈ x1 -> Value f x ∈ x2).
+    intros x xx.
+    rewrite <- domf in xx.
+    induction un1_f as [un_f _].
+    specialize (value f x un_f xx) as H.
+    induction H.
+    rewrite <- domg.
+    rewrite <- ranf.
+    apply ran.
+    done.
+    assert (x_ : M x) by (by exists (Dom f)).
+    by exists x.
+  assert (Value f u ∈ x2 /\ Value f v ∈ x2).
+    induction Huv.
+    split.
+    by apply H.
+    by apply H.
+  rewrite (gYU (Value f u) (Value f v) H0).
+  induction un1_f as [un_f _].
+  induction un1_g as [un_g _].
+  specialize (un_composition un_f un_g) as un_gf.
+  assert (forall x, x ∈ x1 -> Value g (Value f x) = Value (g ○ f) x).
+    intros x xx.
+    assert (x_ : M x) by (by exists x1).
+    assert (vv_gf_ : M (Value g (Value f x))).
+      apply value_set.
+      done.
+      rewrite <- ranf.
+      rewrite <- domf in xx.
+      specialize (value f x un_f xx)  as H1.
+      induction H1.
+      apply ran.
+      done.
+      by exists x.
+    assert (x ∈ (Dom (g ○ f))).
+      apply dom.
+      done.
+      exists (Value g (Value f x)).
+      apply (conj vv_gf_).
+      apply in_composition.
+      done.
+      done.
+      exists (Value f x).
+      split.
+      apply value_set.
+      done.
+      by rewrite domf.
+      split.
+      apply value.
+      done.
+      by rewrite domf.
+      apply  value.
+      done.
+      rewrite <- domf in xx.
+      specialize (value f x un_f xx) as H1.
+      induction H1.
+      rewrite <- ranf.
+      apply ran.
+      done.
+      by exists x.
+    specialize (eq_value (g ○ f) x (Value g (Value f x)) x_ vv_gf_ un_gf H1) as H2.
+    apply H2.
+    apply in_composition.
+    done.
+    done.
+    exists (Value f x).
+    rewrite <- domf in xx.
+    specialize (value f x un_f xx) as H3.
+    induction H3.
+    split.
+    done.
+    split.
+    done.
+    apply value.
+    done.
+    rewrite <- ranf.
+    apply ran.
+    done.
+    by exists x.
+  induction Huv.    
+  rewrite (H1 u H2).
+  rewrite (H1 v H3).
+  done.
+Qed.  
+  
+
+
+
+    
+
+
+  
+
+
+
+  
+
+
+  
 
 
 
