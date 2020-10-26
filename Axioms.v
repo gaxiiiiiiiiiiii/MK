@@ -26,13 +26,18 @@ Notation "X ≡ Y" := (Equal X Y)(at level 5).
 Axiom equal :
     forall X Y, X = Y <-> X ≡ Y.
 
+      
+
 Definition Inclusion (X Y : Class) :=
   forall Z, Z ∈ X -> Z ∈ Y.
 Notation "X ⊆ Y" := (Inclusion X Y)(at level 10).
 
+
+
 Definition ProperInclusion (X Y : Class) :=
   X ⊆ Y /\ ~(X ≡ Y).
-Notation "X ⊂ Y" := (ProperInclusion X Y) (at level 10).
+Notation "X ⊂ Y" := (ProperInclusion X Y) (at level 10). 
+
 
 
 Definition M X :=
@@ -47,12 +52,13 @@ forall P, exists Z, forall x, M x -> x ∈ Z <-> P x.
 
 
 
+
+
 Axiom Classify : (Class -> Prop) -> Class.
 Notation "{| P |}"  := (Classify P) (at level 10).
 
 Axiom classify :
   forall P u, M u -> u ∈ ({|P|}) <-> P u.
-
 
 Axiom Empty : Class.
 Notation "∅" := (Empty).

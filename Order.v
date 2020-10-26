@@ -50,6 +50,26 @@ Definition TOR R :=
 Definition WOR R :=
   Rel R /\ We R (Fld R).
 
+Definition E :=
+    {| fun i => exists x y, M x /\ M y /\ i = <|x,y|> /\ x ∈ y|}.
+
+Definition Trans X :=
+  forall x, x ∈ X -> x ⊆ X.
+
+    
+Definition Sect R X Z :=
+  Z ⊆ X /\ (forall u v, u ∈ X -> v ∈ Z -> <|u,v|> ∈ R -> u ∈ Z).
+
+Definition Seg R X U :=
+  {: X | fun x => <|x,U|> ∈ R:}.
+
+Definition Ord X :=
+    We E X /\ Trans X.
+
+Definition On :=
+  {| Ord |}.  
+
+
 
 
 
@@ -557,8 +577,507 @@ Proof.
   rewrite (H1 u H2).
   rewrite (H1 v H3).
   done.
-Qed.  
+Qed.
+
+
+
   
+
+
+
+Theorem sim_tor X Y :
+  Sim (<|X, Fld X|>) (<|Y, Fld Y|>) -> TOR X <-> TOR Y.
+Proof.
+  intro H.
+  induction H as [f].
+  induction H as [x1]; induction H as [x2].
+  induction H as [r1]; induction H as [r2].
+  induction H as [x1_]; induction H as [x2_].
+  induction H as [r1_]; induction H as [r2_].
+  induction H as [rel_r1]; induction H as [rel_r2].
+  induction H as [X_rx]; induction H as [Y_rx].
+  induction H as [rel_f]; induction H as [un1_f].
+  induction H as [domf]; induction H as [ranf fXY].  
+  split => [H | H].
+  + induction H as [rel_X].
+    induction H.
+    induction H0.
+    induction H as [_ Tr_X].
+    induction H0 as [_ Irr_X].
+    induction H1 as [_ Con_X].
+    unfold Rel in rel_X.
+    assert (X_ : M X).
+      apply (sub_set X V²).
+      apply product_set.
+
+ admit.
+Admitted.
+
+Theorem sim_wor X Y :
+  Sim (<|X, Fld X|>) (<|Y, Fld Y|>) -> WOR X <-> WOR Y.
+Admitted.
+
+
+
+Goal forall X, Trans X <-> (forall u v, u ∈ v /\ v ∈ X -> u ∈ X).
+Proof.
+  intro X.
+  split => [H | H].
+  + intros u v H0.
+    induction H0.
+    by specialize ((H v H1) u H0).
+  + intros v Hv u uv.
+    apply (H u v (conj uv Hv)).
+Qed.
+
+Theorem union_sub {X} :
+    Trans X <-> ⊔ X ⊆ X.
+Proof.
+  split => [H | H].
+  + intros x xX.
+    apply union in xX.
+    induction xX as [Y HY].
+    induction HY as [xY YX].
+    by specialize ((H Y YX) x xY).
+  + intros Y YX x xY.
+    apply H.
+    apply union.
+    by exists Y.
+Qed.
+
+Theorem cap_trans {X Y} :
+    Trans X -> Trans Y -> Trans (X ∩ Y).
+Proof.
+  intros HX HY U UXY i iU.
+  apply cap in UXY.
+  induction UXY.
+  apply cap.
+  split.
+  + by specialize ((HX U H) i iU).
+  + by specialize ((HY U H0) i iU).
+Qed.
+
+Theorem cup_trans {X Y}:
+    Trans X -> Trans Y -> Trans (X ∪ Y).
+Proof.
+  intros HX HY U UXY i iU.
+  apply cup in UXY.
+  apply cup.
+  induction UXY.
+  + apply or_introl.
+    by specialize ((HX U H) i iU).
+  + apply or_intror.
+    by specialize ((HY U H) i iU).
+Qed.
+
+Theorem seg_cap {X u} (u_ : M u) :
+    Seg E X u = X ∩ u.
+Proof.
+  apply equal => i.
+  split => [H | H].
+  + assert (i_ : M i) by (by exists (Seg E X u)).
+    move : H.
+    rewrite classify.
+    intro.
+    induction H as [iX iuE].
+    move : iuE.
+    rewrite classify.
+    intro.
+    induction H as [x]; induction H as [y].
+    induction H as [x_]; induction H as [y_].
+    induction H as [iuxy xy].
+    apply (OP_eq i u x y i_ u_ x_ y_)in iuxy .
+    induction iuxy; subst x y.
+    by apply cap.
+    by apply op_set.
+    done. 
+  + apply cap in H.
+    induction H as [iX iu].
+    assert (i_ : M i) by (by exists u).
+    apply classify.
+    done.
+    apply (conj iX).
+    apply classify.
+    by apply op_set.
+    by exists i; exists u.
+Qed.
+
+
+Theorem segE_set {X u} (u_ : M u):
+    M (Seg E X u).
+Proof.
+  apply (sub_set _ u).
+  done.
+  rewrite seg_cap.
+  done.
+  intros i Hi.
+  apply cap in Hi.
+  apply Hi.
+Qed.
+
+Theorem trans_seg {X} :
+  Trans X <-> forall u, M u -> u ∈ X -> Seg E X u = u.
+Proof.
+  split => [H | H].
+  + intros u u_ uX.
+    apply equal => i.
+    rewrite separation.
+    split => [H0 | H0].
+    - induction H0.
+      move : H1.
+      assert (i_ : M i) by (by exists X).
+      rewrite classify.
+      intro.
+      induction H1 as [x]; induction H1 as [y].
+      induction H1 as [x_]; induction H1 as [y_].
+      induction H1 as [iuxy xy].     
+      apply OP_eq in iuxy.
+      by induction iuxy; subst x y.
+      done.
+      done.
+      done.
+      done.
+      by apply op_set.
+    - assert (i_ : M i) by (by exists u).
+      unfold Trans in H.
+      specialize ((H u uX) i H0).
+      apply (conj H).
+      apply classify.
+      by apply op_set.
+      by exists i; exists u.      
+  + intros x xX i ix.
+    assert (x_ : M x) by (by exists X).
+    specialize (H x x_ xX).
+    rewrite <- H in ix.
+    apply separation in ix.
+    apply ix.
+Qed.    
+
+Theorem in_E {x y} {x_ : M x} {y_ : M y}:
+  <|x,y|> ∈ E <-> x ∈ y.
+Proof.
+  rewrite classify.
+  split => [H | H].
+  + induction H as [a]; induction H as [b].
+    induction H as [a_]; induction H as [b_] .
+    induction H as [abxy ab].
+    apply OP_eq in abxy.
+    by induction abxy; subst a b.
+    done. done. done. done.
+  + by exists x; exists y.
+  + by apply op_set.
+Qed.    
+
+Theorem segE_cap {X Y} {Y_ : M Y}:
+    Seg E X Y = X ∩ Y.
+Proof.
+  apply equal => i.
+  split => [H | H].
+  + assert (i_ : M i) by (by exists (Seg E X Y)).
+    move : H.
+    rewrite separation.
+    rewrite in_E.
+    rewrite cap.
+    done. done. done.
+  + assert (i_ : M i) by (by exists (X ∩ Y)).
+    apply  cap in H.
+    apply separation.
+    rewrite in_E.
+    done. done. done.
+Qed.    
+
+
+Theorem we_sect_seg {X Z} :
+  We E X -> Sect E X Z -> Z <> X -> exists u, u ∈ X /\ Z = Seg E X u.
+Proof.
+  intros.
+  induction H.
+  induction H0.
+  pose (X  // Z) as Y.
+  assert (Y ⊆ X).
+    intros i iY.
+    apply diff in iY.
+    apply iY.
+  assert (Y <> ∅).
+    intro Y0.
+    apply H1.
+    apply equal => i.
+    split => [iZ | iX].
+      (* iZ *)
+      apply (H0 i iZ).
+      (* iX *)        
+      assert (i_ : M i) by (by exists X).
+      specialize (empty i i_) as i0.
+      rewrite <- Y0 in i0.
+      move : i0.
+      apply contrapositive.
+      intro.
+      apply DoubleNegative.
+      apply diff.
+      done.
+  specialize (H2 Y (conj H4 H5)) as H2_.
+  induction H2_ as [m]. (* min of X // Z*)
+  induction H6 as [mY].
+  apply diff in mY.
+  induction mY.
+  pose (Y // (Single m))
+  (*  途中    *)
+
+  
+
+
+
+
+Theorem on_ord {x} {x_ : M x} :
+    x ∈ On <-> Ord x.
+Proof.
+  by rewrite classify.
+Qed.
+
+
+  Theorem empty_on : 
+    ∅ ∈ On.
+  Proof.
+    specialize empty_set as em_.
+    rewrite classify.
+    split.
+    + unfold We.
+      split.
+      unfold Irr.
+      split.
+      intros p pE.
+      assert (p_ : M p) by (by exists E).
+      move : pE.
+      repeat rewrite classify.
+      intro.
+      induction H as [x]; induction H as [y].
+      induction H as [x_]; induction H as [y_].
+      induction H as [p_xy xy].
+      exists x; exists y.
+      by repeat rewrite universe.
+      auto.
+      auto.
+      intros x H.
+      assert (x_ : M x) by (by exists ∅).
+      case ((empty x x_) H).
+      intros Y H.    
+      induction H.
+      assert (Y = ∅).
+        apply equal => i.
+        split => [H1 | H1].
+        specialize (H i H1).
+        assert (i_ : M i) by (by exists Y).
+        case ((empty i i_) H).
+        assert (i_ : M i) by (by exists ∅).
+        case ((empty i i_) H1).
+      case (H0 H1).
+    + intros i H.
+      assert (i_ : M i) by (by exists ∅).
+      case ((empty i i_) H).
+    + done.
+  Qed.
+
+Theorem ord_irr {X} :
+  Ord X  -> ~ X ∈ X.
+Proof.
+  intros H XX.
+  assert (X_ : M X) by (by exists X).
+  induction H.
+  induction H.
+  induction H.
+  specialize (H2 X XX).
+  apply H2.
+  apply classify.  
+  by apply op_set.
+  by exists X; exists X.
+Qed.
+
+
+
+
+Theorem ord_in_irr {X} :
+  Ord X -> forall x, x ∈ X -> ~ x ∈ x.
+Proof.
+  intros H x xX xx.
+  assert (x_ : M x) by (by exists X).
+  induction H.
+  induction H.
+  induction H.
+  specialize (H2 x xX).
+  apply H2.
+  by rewrite in_E.
+Qed.
+
+Theorem sub_refl {X} :
+  X ⊆ X.
+Proof.
+  done.
+Qed.
+
+Theorem not_empty {X} :
+  X <> ∅ <-> exists x, x ∈ X.
+Proof.
+  split.
+  + apply contrapositive.
+    rewrite <- allnot_notexists.
+    intro.
+    apply DoubleNegative. 
+    apply equal => i.
+    split => [iX | i0].
+    - case ((H i) iX).
+    - assert (i_ : M i) by (by exists ∅ ).
+      case ((empty i i_) i0).
+  + intro H.
+    induction H as [x].
+    intro X0.
+    assert (x_ : M x) by (by exists X).
+    rewrite X0 in H.
+    case ((empty x x_) H).
+Qed.    
+
+
+
+
+Theorem ord_sub_trans_in {X Y} :
+  Ord X -> Y ⊂ X -> Trans Y -> Y ∈ X.
+Proof.
+  intros ordX YX transY.
+  inversion  ordX.
+  induction  H.
+  induction H.
+  induction YX.
+  case (ExcludedMiddle (Y = ∅)) as [Y0 | notY0].
+  + subst Y.
+    assert (X <> ∅) .
+      intro X0.
+      symmetry in X0.
+      apply equal in X0.
+      case (H4 X0).
+    specialize (H1 X (conj sub_refl H5)).
+    induction H1 as [m].
+    induction H1 as [mX].
+    case (ExcludedMiddle (m = ∅)) as [m0 | notm0].
+    - by rewrite m0 in mX.
+    - assert (m_ : M m) by (by exists X).
+      apply not_empty in notm0.
+      induction notm0.
+      assert (x_ : M x) by (by exists m).
+      assert (x <> m).
+        intro xm.
+        subst x.
+        apply ((H2 m mX)).
+        rewrite in_E.
+        done. done. done.
+      specialize ((H0 m mX) x H6).
+      specialize (H1 x (conj H0 H7)).
+      induction H1.
+      move : H8.
+      rewrite in_E.
+      intro.
+      case (H8 H6).
+      done. done.
+  + pose (X // Y ) as Z.
+    assert (Z ⊆ X).
+      intros i iZ.
+      apply diff in iZ.
+      apply iZ.
+    assert (Z <> ∅).
+      intro Z0.
+      apply H4.
+      intro i.
+      split => [iY | iX].
+        (* iY *)
+        apply (H3 i iY).
+        (* iX *)        
+        assert (i_ : M i) by (by exists X).
+        specialize (empty i i_) as i0.
+        rewrite <- Z0 in i0.
+        move : i0.
+        apply contrapositive.
+        intro.
+        apply DoubleNegative.
+        apply diff.
+        done.
+    specialize (H1 Z (conj H5 H6)) as H7.
+    induction H7 as [n].
+    induction H7 as [nZ].
+    apply diff in nZ.
+    induction nZ.
+
+    specialize (H1 Y (conj H3 notY0)).
+    induction H1 as [m].
+    induction H1 as [mY].
+
+    apply not_empty in notY0.
+    induction notY0 as [y] .
+
+    case (ExcludedMiddle (Y ∈ Z)) as [YZ | notYZ] .
+    - apply (H5 Y YZ).
+    - 
+
+
+
+
+
+
+    
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+      
+    
+
+
+
+
+    
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

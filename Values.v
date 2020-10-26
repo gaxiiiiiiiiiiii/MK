@@ -74,7 +74,7 @@ split => [H | H]      .
 + by exists a; exists b.
 Qed.
 
-Theorem eq_value {f a b} {a_ : M a} {b_ : M b} :
+Theorem eq_value f a b (a_ : M a) (b_ : M b) :
   Un f -> a ∈ Dom f -> <|a,b|> ∈ f <-> b = Value f a.
 Proof.
   intros unf domf.
@@ -100,12 +100,31 @@ Proof.
     rewrite ran.
     by exists x.
     done.
-  rewrite <- (@eq_value (Inverse f) (Value f x) x H2 x_ H0 H3).
+  rewrite <- (eq_value (Inverse f) (Value f x) x H2 x_ H0 H3).
   by rewrite in_inverse.
 Qed.  
 
 
 Theorem inverse_inverse {f} :
-  Inverse (Inverse f) = f.
+  Rel f -> Inverse (Inverse f) = f.
 Proof.
-Admitted. 
+  intro rel_f.
+  apply equal => i.
+  split => [H | H].
+  + apply inverse in H.
+    induction H as [x]; induction H as [y].
+    induction H as [x_]; induction H as [y_].
+    induction H as [i_xy xy_f].
+    apply (@in_inverse f y x y_ x_) in xy_f.
+    by subst i.
+  + specialize (rel_f i H).
+    apply product in rel_f.
+    induction rel_f as [x]; induction H0 as [y].
+    induction H0 as [x_]; induction H0 as [y_].
+    induction H0 as [i_xy _].
+    subst i.
+    apply (@in_inverse (Inverse f) x y x_ y_).
+    by apply (@in_inverse f y x y_ x_).
+Qed.    
+
+  
