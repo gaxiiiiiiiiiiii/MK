@@ -1,121 +1,124 @@
 Require Export Axioms.
+Require Export Classical.
 
 
 Definition Single X := 
-  Pairing X X.
+  Pair X X.  
 
-Theorem single X (X_ : M X):
-  X ∈ Single X.
+Theorem in_single X Y (Y_ : M Y) :
+  Y ∈ Single X <-> Y = X.
 Proof.
-  apply (pairing X X X X_).
-  by apply or_introl.
+  split; rewrite in_pair => // H.
+  + by case H.
+  + by left.
+Qed. 
+
+Theorem single_set X :
+    M X -> M (Single X).
+Proof.
+  move => X_.
+  apply pair_set => //.
+Qed.        
+
+
+Definition Orderd X Y:= Pair (Single X) (Pair X Y).
+Notation "<| a , b , .. , d |>" := (Orderd .. (Orderd a b) .. d)(at level 0).
+
+Theorem orderd_set X Y (X_ : M X) (Y_ : M Y) :
+  M (<|X,Y|>).
+Proof.
+  apply pair_set.
+  by apply pair_set.
+  by apply pair_set.
 Qed.  
-
-
-Definition OP X Y:= Pairing (Single X) (Pairing X Y).
-Notation "<| a , b , .. , d |>" := (OP .. (OP a b) .. d).
 
 Definition InRel :=
   {|fun u => exists x y, M x /\ M y /\ u = <|x,y|> /\ x ∈ y|}.
 
+Ltac is_set := unfold M; eauto.  
+
 Theorem inrel u :
   u ∈ InRel <-> exists x y, M x /\ M y /\ u = <|x,y|> /\ x ∈ y.
 Proof.
-  split => [H | H].
-  + assert (u_ : M u) by (by exists InRel).
-    by move: H; apply classify.
-  + induction H as [x]; induction H as [y].
-    induction H as [x_]; induction H as [y_].
-    induction H as [u_xy xy].
-    apply classify.
-    rewrite u_xy.
-    apply pairing_set.
-    by apply pairing_set.
-    by apply pairing_set.
+  split => [H|[x [y [x_ [y_ [u_xy xy]]]]]].
+  + have u_ : M u by is_set.
+    by move /(in_cls _ _ u_) : H.
+  + subst u.
+    apply in_cls.
+    apply orderd_set => //.
     by exists x; exists y.
 Qed.
 
 Definition Intersection X Y :=
   {|fun u => u ∈ X /\ u ∈ Y|}.
-Notation "X ∩ Y" := (Intersection X Y)  (at level 10).
+Notation "X ∩ Y" := (Intersection X Y)  (at level 60).
 
-Theorem cap X Y u :
-    u ∈ X ∩ Y <->  u ∈ X /\ u ∈ Y.
+Theorem in_cap X Y u :
+    u ∈ (X ∩ Y) <->  u ∈ X /\ u ∈ Y.
 Proof.
   split => [H | H].
-  + assert (u_ : M u) by (by exists (X ∩ Y)).
-    by move: H ; rewrite classify.
-  + rewrite classify.
-    auto.
-    by induction H; exists X.
+  + assert (u_ : M u) by is_set.
+    move /in_cls : H.
+    by apply.
+  + move : H => [uX uY].
+    rewrite in_cls => //.
+    is_set.
 Qed.   
-
 
 
 Definition Comple X := 
   {| fun x => ~ x ∈ X|}.
-Notation "X ^c" := (Comple X)(at level 10).
+Notation "¬ X" := (Comple X)(at level 5).
 
-Theorem comple X x (x_ : M x):
-    x ∈ X ^c <-> ~ x ∈ X.
+Theorem in_comp X x (x_ : M x):
+    x ∈ ¬X <-> ~ x ∈ X.
 Proof.
-  by rewrite classify.
+  by rewrite in_cls.
 Qed.
 
 
 
 Definition Cup X Y :=
-    ((X ^c) ∩ (Y ^c)) ^c.
+  ¬(¬X ∩ ¬Y).
 Notation "X ∪ Y" := (Cup X Y) (at level 10).    
 
-Theorem cup X Y u :
+Theorem in_cup X Y u :
   u ∈ (X ∪ Y) <-> u ∈ X \/ u ∈ Y.
 Proof.
   split => [H | H].
-  + assert (u_ : M u) by (by exists (X ∪ Y)).
-    apply comple in H.
-    move : H.
-    rewrite cap.
-    repeat rewrite comple.
-    rewrite DeMorgan_notand.
-    repeat rewrite DoubleNegative.
-    done.
-    done.
-    done.
-    done.
-  + induction H as [uX | uY].
-    - assert (u_ : M u) by (by exists X).
-      apply comple.
-      done.
-      rewrite cap.
-      repeat rewrite comple.
-      apply DeMorgan_notand.
-      repeat rewrite DoubleNegative.
-      by apply or_introl.
-      done. done.
-    - assert (u_ : M u) by (by exists Y).
-      apply comple.
-      done.
-      rewrite cap.
-      repeat rewrite comple.
-      apply DeMorgan_notand.
-      repeat rewrite DoubleNegative.
-      by apply or_intror.
-      done. done.
+  + have u_ : M u by is_set.
+    move /(in_comp _ _ u_) : H.
+    move /in_cap.
+    move /not_and_or.
+    by case; move /(in_comp _ _ u_) => H; [left|right]; apply NNPP.
+  + case H => [uX|uY]; have u_ : M u by is_set.
+    - rewrite in_comp => //.
+      rewrite in_cap.
+      apply or_not_and.
+      left.
+      by rewrite in_comp.
+    - rewrite in_comp => //.
+      rewrite in_cap.
+      apply or_not_and.
+      right.
+      by rewrite in_comp.
 Qed.
 
-Definition V :=
-  ∅ ^c.
 
-Theorem universe x :
+
+
+Definition V :=
+  ¬∅.
+
+Theorem in_universe x :
   x ∈ V <-> M x.
 Proof.
   split => [H | H].
   + by exists V.
-  + rewrite comple.
-    by apply empty.
-    done.
-Qed.   
+  + rewrite in_comp => //.
+    by apply notin_empty.
+Qed.
+
 
 
 
@@ -127,33 +130,31 @@ Qed.
 Definition Dom f :=
   {| fun x => exists y, M y /\ <|x,y|> ∈ f|}.
 
-Theorem dom f x (x_ : M x):
+Theorem in_dom f x (x_ : M x):
   x ∈ Dom f <-> exists y, M y /\ <|x,y|> ∈ f.
 Proof.
-  by rewrite classify.
+  by rewrite in_cls.
 Qed.
 
 Definition Ran f := 
   {|fun y => exists x, M x /\ <|x,y|> ∈ f|}.
 
-Theorem ran f y (y_ : M y) :
+Theorem in_ran f y (y_ : M y) :
   y ∈ Ran f <-> exists x, M x /\ <|x,y|> ∈ f.
 Proof.
-  by rewrite classify.
+  by rewrite in_cls.
 Qed.
 
 Definition Diff X Y :=
   {| fun u => u ∈ X /\ ~ u ∈ Y|}.
-Notation "X // Y"  := (Diff X Y) (at level 10).
+Notation "X ~ Y"  := (Diff X Y) (at level 10).
 
 Theorem diff X Y u :
-  u ∈ X // Y <-> u ∈ X /\ ~ u ∈ Y.
+  u ∈ X ~ Y <-> u ∈ X /\ ~ u ∈ Y.
 Proof.
-  split => [H | H].
-  + assert (u_ : M u) by (by exists (X // Y)) .
-    by move: H; rewrite classify.
-  + assert (u_ : M u) by (by induction H; exists X).
-    by rewrite classify.
+  split => [H | [uX _uY]]; have u_ : M u by is_set.
+  + by move /(in_cls _ _ u_) : H.
+  + by rewrite in_cls. 
 Qed.
 
 
@@ -162,21 +163,15 @@ Definition Product X Y :=
   {| fun u => exists x y, M x /\ M y /\ u = <|x,y|> /\ x ∈ X /\ y ∈ Y|}.
 Notation "X × Y" := (Product X Y) (at level 10).
 
-Theorem product X Y u :
+Theorem in_prod X Y u :
   u ∈ X × Y <-> exists x y, M x /\ M y /\ u = <|x,y|> /\ x ∈ X /\ y ∈ Y.
 Proof.
-  split => [H | H].
-  + assert (u_ : M u) by (by exists (X × Y)).
-    by move: H; apply classify.
-  + rewrite classify.
-    exact H.
-    induction H as [x]; induction H as [y].
-    induction H as [x_]; induction H as [y_].
-    induction H as [u_xy]; induction H as[xX yY].    
-    rewrite u_xy.
-    apply pairing_set.
-    by apply pairing_set.
-    by apply pairing_set.
+  split => [uXY | [x [y [x_ [y_ [u_xy [xX yY]]]]]]].
+  + have u_ : M u by is_set.
+    move /in_cls : uXY; auto.
+  + rewrite in_cls.
+    by exists x; exists y.
+    by subst u; apply orderd_set.
 Qed.
 
 
@@ -186,68 +181,54 @@ Notation "X ²" := (Sq X)(at level 1).
 Definition Rel X := X ⊆ V².
 
 Definition Power X :=
-  {| fun x => x ⊆ X|}.
+  {| fun x => x ⊂ X|}.
 
-Theorem power X x (x_ : M x):
-    x ∈ (Power X) <-> x ⊆ X.
+Theorem in_pow X x (x_ : M x):
+    x ∈ (Power X) <-> x ⊂ X.
 Proof.
-  by rewrite classify.
+  by rewrite in_cls.
 Qed.
 
-Axiom power_set :
+Axiom pow_set :
   forall x, M x -> M (Power x).
 
 
 
-Definition Union X :=
+Definition Cups X :=
   {| fun x => exists Y, x ∈ Y /\ Y ∈ X|}.
-Notation "⊔ X" := (Union X) (at level 10).
+Notation "⊔ X" := (Cups X) (at level 10).
 
-Theorem union X x :
+Theorem in_cups X x :
   x ∈ ⊔ X <-> exists Y, x ∈ Y /\ Y ∈ X.
 Proof.
-  split => [H | H].
-  assert (x_ : M x) by (by exists (⊔ X)).
-  + move : H. rewrite classify. intro H.
-    induction H as [Y].
-    induction H as [xY YX].
+  split => [H | [Y [xY YX]]].
+  + have x_ : M x  by is_set.
+    move /in_cls : H; auto.
+  + rewrite in_cls.
     by exists Y.
-    done.
-  + induction H as [Y]; induction H as [xY YX].
-    rewrite classify.
-    by exists Y.
-    by exists Y.
+    is_set.
 Qed.
 
-Axiom union_set :
+Axiom cups_set :
   forall x, M x -> M (⊔ x).
 
 Definition Caps X :=
   {|fun x => forall Y, Y ∈ X -> x ∈ Y|}.
 Notation "⊓ X" := (Caps X) (at level 10).
 
-Theorem caps X x (x_ : M x) :
+Theorem in_caps X x (x_ : M x) :
     x ∈ ⊓ X <-> (forall Y, Y ∈ X -> x ∈ Y).
 Proof.
-  by rewrite classify.
+  by rewrite in_cls.
 Qed.
 
-Theorem caps_empty :
+Theorem caps_empty__universe :
   ⊓ ∅ = V.
-Proof.
-  rewrite equal => i.
-  split => [H | H].
-  + assert (i_ : M i) by (by exists (⊓ ∅)).
-    unfold V.
-    rewrite comple.
-    apply empty.
-    done.
-    done.
-  + assert (i_ : M i) by (by exists V).
-    rewrite caps.
-    intros Y Y0.
-    assert (Y_ : M Y) by (by exists ∅).
-    specialize (empty Y Y_) as emp.
-    case (emp Y0).
-    done.
+Proof.  
+  rewrite -Equal => i.
+  split => [H | H]; have i_ : M i by is_set.
+  + by apply in_universe.
+  + rewrite in_caps => // Y HY.
+    have Y_ : M Y by is_set.
+    case (notin_empty Y Y_ HY).
 Qed.

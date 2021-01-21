@@ -1,130 +1,90 @@
 Require Export Definitions.
 
 
-Theorem couple x y (x_ : M x) (y_ : M y) :
-    x ∈ (Pairing x y) /\ y ∈ (Pairing x y).
+Theorem pair_refl x y (x_ : M x) (y_ : M y) :
+    x ∈ (Pair x y) /\ y ∈ (Pair x y).
 Proof.
-  split.
-  + apply (pairing x y x x_).
-    by apply or_introl.
-  + apply (pairing x y y y_).
-    by apply or_intror.
+  split; rewrite in_pair //; [left|right] => //.
 Qed.
     
 
 
 
-Theorem pairing_refl X Y (X_ : M X) (Y_ : M Y):
-    (Pairing X Y) = (Pairing Y X).
+Theorem pair_comm X Y (X_ : M X) (Y_ : M Y):
+    (Pair X Y) = (Pair Y X).
 Proof.
-  apply equal.
-  intros i.
-  split => [H | H].
-  + assert (i_ : M i)  by (by exists (Pairing X Y)).
-    apply (pairing X Y i i_) in H.
-    apply (pairing Y X i i_).
-    by apply or_comm.
-  + assert (i_ : M i)  by (by exists (Pairing Y X)).
-    apply (pairing X Y i i_).
-    apply (pairing Y X i i_) in H.
-    by apply or_comm.  
+  apply Equal => i.
+  split => [H | H];  have i_ : M i by is_set.
+  + move : H; rewrite !in_pair //; case => [iX|iY]; [right|left] => //=.
+  + move : H; rewrite !in_pair //; case => [iY|iX]; [right|left] => //=.
 Qed.        
 
+Theorem single_refl x (x_ : M x) :
+    x ∈ Single x.
+Proof.
+  apply in_single => //.
+Qed.      
 
-
- 
-Theorem in_single x X (x_ : M x) (X_ : M X):
-  x ∈ (Single X) <-> x = X.
+Theorem single_single x y (x_ : M x) (y_ : M y):
+  ((Single x) = (Single y)) <-> (x = y).
 Proof.
   split => [H | H].
-  + apply (pairing X X x x_) in H.
-    by apply (@or_elim (x = X)) in H.
-  + rewrite H.
-    by apply single.
-Qed.    
-
-
-Theorem single_single :
-  forall x y, M x -> M y -> ((Single x) = (Single y)) <-> (x = y).
-Proof.
-  intros x y x_ y_.
-  split => [H | H].
-  + specialize (single x x_) as x_xx.
-    rewrite H in x_xx.
-    by apply (in_single x y x_ y_) in x_xx.
+  + move : (single_refl x x_).
+    rewrite H.
+    move /in_single.
+    auto.
   + by rewrite H.
 Qed.  
 
-Theorem pairing_single x y X (x_ : M x) (y_ : M y) (X_ : M X):
-    (Pairing x y) = (Single X) <-> x = X /\ y = X.
+Theorem pair_single x y X (x_ : M x) (y_ : M y) (X_ : M X):
+    (Pair x y) = (Single X) <-> x = X /\ y = X.
 Proof.
   split => [H | H].
-  + specialize (couple x y x_ y_) as H0.
-    rewrite H in H0.
-    induction H0 as [x_X y_X].
-    apply (in_single x X x_ X_) in x_X.
-    by apply (in_single y X y_ X_) in y_X.
-  + induction H as [xX yX].
-    by subst x y.
+  + move : (pair_refl x y x_ y_).
+    rewrite H.
+    case; rewrite !in_single => //.
+  + by move : H => [xX yX]; subst x y.
 Qed.
 
-Theorem single_pairing X x y (X_ : M X) (x_ : M x) (y_ : M y) :
-    (Single X) = (Pairing x y) -> x = X /\ y = X.
+Theorem single_pair X x y (X_ : M X) (x_ : M x) (y_ : M y) :
+    (Single X) = (Pair x y) -> x = X /\ y = X.
 Proof.
   intro H.
   symmetry in H.
-  by apply (pairing_single x y X x_ y_ X_) in H.
+  by apply (pair_single x y X x_ y_ X_) in H.
 Qed.     
 
 
 
 
-Theorem pairing_pairing x y X Y (x_ : M x) (y_ : M y) (X_ : M X) (Y_ : M Y) :
-  (Pairing x y) = (Pairing X Y) <-> (x = X /\ y = Y) \/ (x = Y /\ y = X).
+Theorem pair_pair x y X Y (x_ : M x) (y_ : M y) (X_ : M X) (Y_ : M Y) :
+  (Pair x y) = (Pair X Y) <-> (x = X /\ y = Y) \/ (x = Y /\ y = X).
 Proof.
-  split => [H | H].
-  + specialize (couple x y x_ y_) as H1.
-    specialize (couple X Y X_ Y_) as H2.
-    move: H1; rewrite H; intro H1.
-    move: H2; rewrite <- H; clear H; intro H2.
-    induction H1 as [x_XY y_XY].
-    induction H2 as [X_xy Y_xy].
-    apply (pairing X Y x x_) in x_XY.
-    apply (pairing X Y y y_) in y_XY.
-    apply (pairing x y X X_) in X_xy.
-    apply (pairing x y Y Y_) in Y_xy.
-    induction x_XY as [xX | xY].
-    - subst X. 
-      induction y_XY as [yX | yY].
-      * subst y.
-        induction Y_xy as [Yx | Yx].
-          subst Y.
-          by apply or_introl.
-          subst Y.
-          by apply or_introl.
-      * subst Y.
-        by apply or_introl.
-    - subst Y.
-      induction y_XY as [yX | yx].
-      * subst X.
-        by apply or_intror.
-      * subst y.
-        apply (@or_elim (X = x)) in X_xy.
-        subst X.
-        by apply or_introl.
-  + induction H as [H | H].
-    - induction H as [xX yY].
-      by subst X Y.
-    - induction H as [xY yX].
-      subst X Y.
-      by apply pairing_refl.
-Qed.      
+  split => [H | [[xX yY]|[xY yX]]].
+  + move : (pair_refl x y x_ y_) => [x_xy y_xy].
+    move : (pair_refl X Y X_ Y_) => [X_XY Y_XY].
+    rewrite H in x_xy.
+    rewrite H in y_xy.
+    rewrite -H in X_XY.
+    rewrite -H in Y_XY.
+    move /(in_pair X Y x x_) : x_xy => [xX | xY]; [left|right]; split => // ; subst x.
+    - move /(in_pair X Y y y_):  y_xy => [yX | yY]; subst y => //.
+      move /(in_single) : Y_XY.
+      by symmetry; auto.
+    - move /(in_pair X Y y y_):  y_xy => [yX | yY]; subst y => //.
+      move /in_single : X_XY.
+      by symmetry; auto.
+  + by subst x y.
+  + subst x y.
+    apply pair_comm => //.
+Qed.    
 
 
-Theorem op x y i (x_ : M x) (y_ : M y) (i_ : M i):
-  i ∈ <|x,y|> <-> i = (Single x) \/ i = (Pairing x y).
+
+Theorem in_orderd x y i (x_ : M x) (y_ : M y) (i_ : M i):
+  i ∈ <|x,y|> <-> i = (Single x) \/ i = (Pair x y).
 Proof.
-  by rewrite pairing.
+  by rewrite in_pair.
 Qed.   
 
 
@@ -133,150 +93,90 @@ Qed.
 
     
 
-Theorem OP_eq x y X Y (x_ : M x) (y_ : M y) (X_ : M X) (Y_ : M Y) :
+Theorem orderd_eq x y X Y (x_ : M x) (y_ : M y) (X_ : M X) (Y_ : M Y) :
     (<|x,y|>) = (<|X,Y|>) <-> x = X /\ y = Y.
 Proof.
-  assert (xx_ : M (Single x)) by (by apply (pairing_set x x)).
-  assert (xy_ : M (Pairing x y)) by (by apply (pairing_set x y)).
-  assert (XX_ : M (Single X)) by (by apply (pairing_set X X)).
-  assert (XY_ : M (Pairing X Y)) by (by apply (pairing_set X Y)).
-  specialize (couple (Single x) (Pairing x y) xx_ xy_) as H1.
-  specialize (couple (Single X) (Pairing X Y) XX_ XY_) as H2.
-  induction H1 as [x_xOPy xy_xOPy].
-  induction H2 as [X_XOPY XY_XOPY].
-  unfold OP.
-  split => [H | H].
-  + rewrite H in x_xOPy.
+  have xx_ : M (Single x) by apply single_set.
+  have xy_ : M (Pair x y) by apply (pair_set x y).
+  have XX_ : M (Single X) by apply single_set.
+  have XY_ : M (Pair X Y) by apply (pair_set X Y).
+  move : (pair_refl (Single x) (Pair x y) xx_ xy_) => [xx_xOPy xy_xOPy].
+  move : (pair_refl (Single X) (Pair X Y) XX_ XY_) => [_ XY_XOPY].
+  unfold Orderd.
+  split => [H | [xX yY]].
+  + rewrite H in xx_xOPy.
     rewrite H in xy_xOPy.
     rewrite <- H in XY_XOPY.
     clear H.
-    clear X_XOPY.
-    apply  (pairing (Single x) (Pairing x y) (Pairing X Y)  XY_) in XY_XOPY.
-    apply (pairing (Single X) (Pairing X Y) (Single x) xx_) in x_xOPy.
-    apply (pairing (Single X) (Pairing X Y) (Pairing x y) xy_) in xy_xOPy.
-    case (ExcludedMiddle (x = y)) as [xy | notxy].
-    - subst y.
-      induction xy_xOPy as [x_X | x_XY].
-      * apply (single_single x X x_ X_) in x_X.
-        apply (conj x_X).
-        subst X.
-        apply (@or_elim ((Pairing x Y) = (Single x)))in XY_XOPY.
-        apply (pairing_single x Y x x_ Y_ x_) in XY_XOPY.
-        symmetry.
-        apply XY_XOPY.
-      * apply (single_pairing x X Y x_ X_ Y_ ) in x_XY.
-        induction x_XY as [Xx Yx].
-        by symmetry in Yx.
-    - induction xy_xOPy as [xy_X | xy_XY].
-      * apply (pairing_single x y X x_ y_ X_) in xy_X.
-        induction xy_X.
-        subst y.
-        case (notxy H).
-      * apply (pairing_pairing x y X Y x_ y_ X_ Y_) in xy_XY.
-        induction xy_XY as [H | H].
-          by induction H as [R L].
-          induction H as [xY yX].
-          subst X Y.
-          induction x_xOPy as [x_y | x_yx].
-            apply (single_single x y x_ y_) in x_y.
-            apply (conj x_y).
-            by symmetry.
-            apply (single_pairing x y x x_ y_ x_) in x_yx.
-            induction x_yx as [y_x _].
-            by subst y.
- + induction H as [xX yY].
-   by subst X Y.
-Qed.
-
-
-
-Theorem op_set X Y (X_ : M X) (Y_ : M Y) :
-  M <|X,Y|>.
-Proof.
-  apply pairing_set.
-  by apply pairing_set.
-  by apply pairing_set.
-Qed.  
+    move /(in_pair _ _ _ XY_) : XY_XOPY => H1.
+    move /(in_pair _ _ _ xx_) : xx_xOPy => H2.
+    move /(in_pair _ _ _ xy_) : xy_xOPy => H3.
+    case H1 => {H1} [H1|H1].    
+    - case /(pair_single X Y x X_ Y_ x_ ) : H1 => Xx Yx; subst X Y; split => //.
+      case H3 => [H|H]; case /pair_single : H; auto.
+    - case /(pair_pair X Y x y X_ Y_ x_ y_) : H1 => [[Xx Yy]|[Xy Yx]]; subst x y => //.
+      case H2 => [YY_XX | YY_XY].
+      * move /(single_single Y X Y_ X_) : YY_XX; split => //.
+      * move /(single_pair Y X Y Y_ X_ Y_) : YY_XY => [XY _]; subst X => //.
+  + by subst x y.
+Qed.    
+       
+Ltac equal := rewrite -Equal.
 
 Theorem cap_comm x y :
   x ∩ y = y ∩ x.
-Admitted.
+Proof.
+  equal => i.
+  rewrite !in_cap.
+  split => [[l r]|[l r]]; split => //.
+Qed.    
 
 Theorem cup_comm x y :
   x ∪ y = y ∪ x.
-Admitted.
+Proof.
+  equal => i.
+  rewrite !in_cup.
+  split => [[ix|iy]|[iy|ix]]; [right|left|right|left] => //.
+Qed.
 
 Theorem cap_assoc x y z :
-  (x ∩ y) ∩ z = x ∪ (y ∪ z).
-Admitted.
+  (x ∩ y) ∩ z = x ∩  (y ∩ z).
+Proof.
+  equal => i.
+  rewrite !in_cap.
+  split => [[[ix iy] iz] | [ix [iy iz]]] => //.
+Qed.  
 
 Theorem cup_assoc x y z :
   (x ∪ y) ∪ z = x ∪ (y ∪ z) .
-Admitted.
-
-Theorem union_pairing x y (x_ : M x) (y_ : M y):
-  x ∪ y = ⊔ (Pairing x y).
 Proof.
-  apply equal => i.
-  split => [H | H].
-  + assert (i_ : M i) by (by exists (x ∪ y)) .
-    apply cup in H.
-    apply union.
-    induction H as [ix | iy].
-    - exists x.
-      apply (conj ix).
-      apply (pairing x y x).
-      done.
-      by apply or_introl.
-    - exists y.
-      apply (conj iy).
-      apply (pairing x y y).
-      done.
-      by apply or_intror.
-  + apply union in H.
-    induction H as[u].
-    induction H as [iu u_xy].
-    apply pairing in u_xy.
-    apply cup.
-    induction u_xy as [ux | uy].
-    - subst u.
-      by apply or_introl.
-    - subst u.
-      by apply or_intror.
-    - by exists (Pairing x y).
+  equal => i; rewrite !in_cup.
+  split => [[[ix | iy] | iz] | [ix | [iy | iz]]]; eauto.
 Qed.
 
-Theorem caps_pairing x y (x_ : M x) (y_ : M y) :
-  x ∩ y = ⊓ (Pairing x y).
+Theorem union_Pair x y (x_ : M x) (y_ : M y):
+  x ∪ y = ⊔ (Pair x y).
 Proof.
-  apply equal => i.
-  split => [H | H].
-  + assert (i_ : M i) by (by exists (x ∩ y)).
-    apply cap in H.
-    induction H as [ix iy].
-    apply caps.
-    done.
-    intros u Hu.
-    apply pairing in Hu.
-    induction Hu as [ux | uy].
-    - by subst u.
-    - by subst u.
-    - by exists (Pairing x y).
-  + assert (i_ : M i) by (by exists (⊓ (Pairing x y))).
-    move : H.
-    rewrite caps.
-    intro.
-    apply cap.
-    split.
-    - apply (H x).
-      apply pairing.
-      done.
-      by apply or_introl.
-    - apply (H y).
-      apply pairing.
-      done.
-      by apply or_intror.
-    - done.
+  equal => i; rewrite in_cup in_cups.
+  split => [[ix | iy] | [xy [ixy xyxy]]]; have i_ : M i by is_set.
+  + exists x; split => //.
+    by apply in_pair => //; left.
+  + exists y; split => //.
+    by apply in_pair => //; right.
+  + have xy_ : M xy  by is_set.
+    move /(in_pair x y xy xy_) : xyxy => [Hx|Hy]; subst xy; [left|right] => //.
+Qed.
+
+Theorem caps_Pair x y (x_ : M x) (y_ : M y) :
+  x ∩ y = ⊓ (Pair x y).
+Proof.
+  equal => i; rewrite in_cap.
+  split => [[ix iy] | H]; have i_ : M i by is_set.
+  + rewrite in_caps => // Y Yxy.
+    have Y_ : M Y by is_set.
+    case /(in_pair x y Y Y_) : Yxy => [Yx | Yy]; subst Y => //.
+  + move /(in_caps _ i i_) : H => H.
+    split; apply H; apply in_pair => //; [left|right] => //.  
 Qed.
 
 

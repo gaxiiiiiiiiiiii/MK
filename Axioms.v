@@ -19,24 +19,18 @@ Axiom In : Class -> Class -> Prop.
 Notation "x ∈ X" := (In x X) (at level 50).
 
 
-Definition Equal (X Y : Class) := 
-  forall Z, Z ∈ X <-> Z ∈ Y.
-Notation "X ≡ Y" := (Equal X Y)(at level 5).
+Axiom Equal : forall X Y,
+  (forall Z, Z ∈ X <-> Z ∈ Y) <-> X = Y.
 
-Axiom equal :
-    forall X Y, X = Y <-> X ≡ Y.
-
-      
 
 Definition Inclusion (X Y : Class) :=
   forall Z, Z ∈ X -> Z ∈ Y.
-Notation "X ⊆ Y" := (Inclusion X Y)(at level 10).
-
+Notation "X ⊂ Y" := (Inclusion X Y)(at level 10).
 
 
 Definition ProperInclusion (X Y : Class) :=
-  X ⊆ Y /\ ~(X ≡ Y).
-Notation "X ⊂ Y" := (ProperInclusion X Y) (at level 10). 
+  X ⊂ Y /\ X <> Y.
+Notation "X ⊆ Y" := (ProperInclusion X Y) (at level 10). 
 
 
 
@@ -46,41 +40,33 @@ Definition M X :=
 Definition Pr X :=
   ~ M X.
 
-Axiom Existance :
-forall P, exists Z, forall x, M x -> x ∈ Z <-> P x.
-
-
-
-
-
 
 Axiom Classify : (Class -> Prop) -> Class.
-Notation "{| P |}"  := (Classify P) (at level 10).
+Notation "{| P |}"  := (Classify P) (at level 0).
 
-Axiom classify :
+Axiom in_cls :
   forall P u, M u -> u ∈ ({|P|}) <-> P u.
 
 Axiom Empty : Class.
 Notation "∅" := (Empty).
 
-Axiom empty :
+Axiom notin_empty :
   forall x, M x -> ~ x ∈ ∅.
     
 Axiom empty_set :
   M ∅.
 
  
-
-Definition Pairing x y :=
+Definition Pair x y :=
   {| fun u => u = x \/ u = y |}.
 
-Axiom pairing_set :
-  forall x y, M x -> M y -> M (Pairing x y).
+Axiom pair_set :
+  forall x y, M x -> M y -> M (Pair x y).
 
-Theorem pairing x y u (u_ : M u):
-  u ∈ Pairing x y <-> u = x \/ u = y.
+Theorem in_pair x y u (u_ : M u):
+  u ∈ Pair x y <-> u = x \/ u = y.
 Proof.
-  by rewrite classify.
+  rewrite in_cls => //.
 Qed.
 
 
