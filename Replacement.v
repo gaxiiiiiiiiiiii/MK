@@ -3,10 +3,6 @@ Require Export Functions.
 
 Axiom Replacement :
   forall f X, M X ->  Un f -> M (Image f X).  
-
-
-
-
         
 
 Theorem cap_set X Y (X_ : M X)  :
@@ -14,386 +10,294 @@ Theorem cap_set X Y (X_ : M X)  :
 Proof.
   pose (fun p => exists x, p = <|x,x|> /\ x ∈ X /\ x ∈ Y) as H0.
   pose ({| H0 |}) as f.
-  assert (Unf : Un f).
-  + intros x y z x_ y_ z_ xy_f yz_f.
-    apply (classify H0) in xy_f.
-    induction xy_f as [a]; induction H as [xy_aa]; induction H as [aX _].
-    assert (a_ : M a) by (by exists X).
-    apply (OP_eq x y a a x_ y_ a_ a_) in xy_aa; induction xy_aa. subst a.
-    apply (classify H0) in yz_f.
-    induction yz_f as [a]; induction H as [yz_aa]; induction H as [aX_ _].
-    assert (a__ : M a) by (by exists X).
-    apply (OP_eq x z a a x_ z_ a__ a__) in yz_aa; induction yz_aa. subst a.
-    by subst x.
-    by apply op_set.
-    by apply op_set.
-  + assert (H : X ∩ Y = Image f X).
-    - apply equal => x.
-      rewrite cap.      
-      split => [H | H].
-      * rewrite image.      
-        unfold f.
-        unfold H0.
-        exists x.
-        induction H as [xX xY] .
-        assert (x_ : M x) by (by exists X).
-        apply (conj x_).
-        apply (conj xX).
-        apply classify.
-        apply (op_set x x x_ x_).
-        by exists x.
-        exists X.
-        apply H.
-      * assert (x_ : M x) by (by exists (Image f X)).
-        apply image in H.      
-        unfold f in H.
-        unfold H0 in H.
-        induction H as [x0]; induction H as[x0_]; induction H as [xX].
-        apply (classify H0) in H.
-        induction H as [x1]; induction H as [xx_xx]; induction H as [_ xY].
-        assert (x1_ : M x1) by (by exists Y).
-        apply (OP_eq x0 x x1 x1 x0_ x_ x1_ x1_) in xx_xx. induction xx_xx. subst x0 x1.
-        done.
-        by apply op_set.
-        done.
-    - rewrite H.
-      by apply Replacement.
+  have Un_f : Un f.
+    rewrite /Un => x y z x_ y_ z_ xy_f xz_f.
+    have xy_ : M <|x,y|> by apply orderd_set.
+    have xz_ : M <|x,z|> by apply orderd_set.
+    move /(in_cls _ _ xy_) : xy_f => [x0 [xyxx [xX xY]]].
+    move /(in_cls _ _ xz_) : xz_f => [z0 [xzxx [_ zY]]].
+    have x0_ : M x0 by is_set.
+    have z0_ : M z0 by is_set.
+    move /(orderd_eq x y x0 x0 x_ y_ x0_ x0_) : xyxx => [l r]; subst x y.
+    move /(orderd_eq x0 z z0 z0 x0_ z_ z0_ z0_) : xzxx => [l r]; subst x0 z.
+    done.
+  have XY_imfX : X ∩ Y = Image f X.
+    equal => i.
+    rewrite in_cap.
+    split => [[iX iY]|H]; have i_ : M i by is_set.
+    + rewrite in_image => //.
+      exists i; split => //; split => //.
+      rewrite in_cls.
+      by exists i.
+      by apply orderd_set.
+    + move /(in_image f X i i_) : H => [x [x_ [xX xi_f]]].
+      have xi_ : M <|x,i|> by (apply orderd_set).
+      move /(in_cls _ _ xi_) : xi_f => [j [xijj [jX jY]]].
+      have j_ : M j by is_set.
+      move /(orderd_eq x i j j x_ i_ j_ j_) : xijj => [xj ij]; subst i.
+      done.
+  + by rewrite XY_imfX; apply Replacement.
 Qed.
 
 Theorem sub_set x y (y_ : M y):
-  x ⊆ y -> M x.
+  x ⊂ y -> M x.
 Proof.
-  intro H.
-  assert (y_xy : x = y ∩ x).
-  + apply equal => i.
-    rewrite cap.
-    split => [iy |iyix].
-    - apply (conj (H i iy)).
-      apply (iy).      
-    - apply iyix.
-  + specialize (cap_set y x y_).
-    by rewrite <- y_xy.
+  move => xy.
+  suff x_xy : x = y ∩ x.
+    rewrite x_xy.
+    by apply cap_set.
+  equal => i.
+  rewrite in_cap.
+  split => [ix | [iy ix]] => //.
+  split => //.
+  apply xy => //.
 Qed.
 
 Definition Separation X P :=
   {| fun x => x ∈ X /\ P x|}.
 Notation "{: X | P :}" := (Separation X P) (at level 10).   
 
-Theorem separation {X P x} :
+Theorem in_sep {X P x} :
   x ∈ ({: X | P :}) <-> x ∈ X /\ P x.
 Proof.
-  split => [H | H].
-  + assert (x_ : M x) by (by exists ({: X | P :})) .
-    by apply (classify (fun x => x ∈ X /\ P x)) in H.
-  + assert (x_ : M x) by (by induction H; exists X).
-    by apply (classify (fun x => x ∈ X /\ P x)).
+  split => [H | [xX Px]]; have x_ : M x by is_set.
+  + move /in_cls : H; auto.
+  + by apply in_cls. 
 Qed.
 
-Theorem separation_sub X P :
-  {: X | P:} ⊆ X.
+Theorem sep_sub X P :
+  {: X | P:} ⊂ X.
 Proof.
-  intros x XP.
-  apply separation in XP.
-  apply XP.
+  move => x.
+  rewrite in_sep.
+  by case.
 Qed.    
 
-Theorem separation_set X P :
+Theorem sep_set X P :
   M X -> M ({: X | P :}).
 Proof.
-  intro X_.
-  specialize (separation_sub X P) as H0.
-  by apply sub_set in H0.
+  move => X_.
+  apply sub_set with (y := X) => //.
+  apply sep_sub.
 Qed.  
 
 
 
-Definition Value f x :=
-    {| fun i => forall y, M y -> <|x,y|> ∈ f -> i ∈ y|}.
 
-Theorem value f x :
-  Un f -> x ∈ Dom f -> <|x, Value f x|>  ∈ f /\ M (Value f x).
-Proof.
-  intros unf H.
-  assert (x_ : M x) by (by exists (Dom f)).
-  apply dom in H.
-  induction H as [y]; induction H as [y_ xy_f].
-  assert (y_fx : y = Value f x).
-  + apply equal => i.
-    split => [H | H].
-    - assert (i_ : M i) by (by exists y).
-      apply classify.
-      apply i_.
-      intros y0 y0_ xy0_f.
-      specialize (unf x y y0 x_ y_ y0_ xy_f xy0_f).
-      by rewrite unf in H.
-    - assert (i_ : M i) by (by exists (Value f x)).
-      move: H; rewrite classify.
-      intro H.
-      by apply (H y y_ xy_f).
-      apply i_.
-  + by rewrite <- y_fx.
-  + done.
-Qed.  
-
-Theorem value_set f x :
-    Un f -> x ∈ Dom f -> M (Value f x).
-Proof.
-  intros unf domf.
-  by induction (value f x unf domf).
-Qed.
   
   
 
 
 
-Theorem dom_set x (x_ : M x):
-    M (Dom x).
+Theorem dom_set f (f_ : M f):
+    M (Dom f).
 Proof.
-  assert (H : (Dom x) ⊆ (⊔ ⊔ x)).
-  + intros i H.
-    assert (i_ : M i) by (by exists (Dom x)).
-    apply union.
-    exists (Single i).
-    split.
-    by apply single.
-    apply union.
-    apply dom in H.
-    induction H as [j]; induction H as [j_].
-    exists (<|i,j|>).
-    split.
-    - apply op.
-      done.      
-      done.
-      by apply pairing_set.
-      by apply or_introl.
-    - done.
-    - done.
-  + apply (sub_set (Dom x) (⊔ ⊔ x)).
-    by repeat apply union_set.
-    done.
+  apply sub_set with (y := ⊔ ⊔ f).
+  + by apply cups_set; apply cups_set.
+  + move => i H.
+    have i_ : M i by is_set.
+    move /(in_dom _ _ i_) : H => [y [y_ iy_f]].
+    rewrite in_cups.
+    exists (Single i ); split.
+    apply single_refl => //.
+    apply in_cups.
+    exists <|i,y|>; split => //.
+    apply in_orderd => //.
+    apply single_set => //.
+    left => //.
 Qed.
 
-Theorem ran_set x (x_ : M x) :
-    M (Ran x).
+Theorem ran_set f (f_ : M f) :
+    M (Ran f).
 Proof.
-  assert (H : Ran x ⊆ ⊔ ⊔ x).
-  + intros v H.    
-    assert (v_ : M v) by (by exists (Ran x)).
-    apply ran in H.
-    induction H as [u]; induction H as [u_ uv_x].
-    apply union.
-    exists (Pairing u v).
-    split.
-    by apply couple.
-    apply union.
-    exists (<|u,v|>).
-    split.
-    apply couple.
-    by apply pairing_set.
-    by apply pairing_set.
-    done.
-    done.
-  + apply (sub_set (Ran x) (⊔ ⊔ x)) .
-    by repeat apply union_set.
-    done.
-Qed.
+  apply sub_set with (y := ⊔ ⊔ f).
+  + by apply cups_set; apply cups_set.
+  + move => i H.
+    have i_ : M i by is_set.
+    move /(in_ran f i i_) : H => [x [x_ xi_f]].
+    apply in_cups.
+    exists (Pair x i); split.
+    apply in_pair => //; right => //.
+    apply in_cups.
+    exists <|x,i|>; split => //.
+    apply in_orderd => //.
+    apply pair_set => //.
+    right => //.
+Qed.    
+
+
+
 
 Theorem cup_set x y (x_ : M x) (y_ : M y):
   M (x ∪ y).
 Proof.
-  assert (H : (x ∪ y) ⊆ (⊔ (Pairing x y))).
-  + intros i i_xy.
-    assert (i_ : M i) by (by exists (x ∪ y)).
-    apply union.
-    apply cup in i_xy.
-    induction i_xy as [ix | iy].
-    - exists x.
-      apply (conj ix) .
-      apply (pairing x y x x_).
-      by apply or_introl.
-    - exists y.
-      apply (conj iy).
-      apply(pairing x y y y_).
-      by apply or_intror.
-  + apply (sub_set _ (⊔ (Pairing x y))).
-    apply union_set.
-    by apply pairing_set.
-    done. 
-Qed.    
-
-
+  apply sub_set with (y := ⊔ (Pair x y)).
+  + by apply cups_set; apply pair_set.
+  + move => i H.
+    move /in_cup : H => H.
+    apply in_cups.
+    case H => [ix | iy].
+    - exists x; split => //.
+      apply in_pair => //; left => //.
+    - exists y; split => //.
+      apply in_pair => //; right => //.
+Qed.      
 
   
 
 Theorem product_set x y (x_ : M x) (y_ : M y) :
     M (x × y).
 Proof.
-  assert (H : (x × y) ⊆ (Power (Power (x ∪ y)))).
-  + intros i i_xy.
-    assert (i_ : M i) by (by exists (x × y)).
-    apply power.
-    done.
-    intros j j_i.
-    assert (j_ : M j) by (by exists i).
-    apply power.
-    done.
-    intros k k_j.
-    apply cup.
-    apply product in i_xy.
-    induction i_xy as [x0]; induction H as [y0].
-    induction H as [x0_]; induction H as [y0_].
-    induction H as [i_x0y0]; induction H as [x0x y0y].
-    rewrite i_x0y0 in j_i.
-    apply op in j_i.
-    induction j_i as [j_xx | j_xy].
-    - subst j.
-      apply in_single in k_j.
-      apply or_introl.
-      by subst k.
-      by exists (Single x0).
-      done.
-    - subst j.
-      apply pairing in k_j.
-      induction k_j as [kx | ky].
-      * apply or_introl.
-        by subst k.
-      * apply or_intror.
-        by subst k.
-      * by exists (Pairing x0 y0).
-    - done.
-    - done.
-    - done.
-  + apply (sub_set _ (Power (Power (x ∪ y)))).
-    repeat apply power_set.
-    by apply cup_set.
-    done.
-Qed.    
-      
-Goal forall f, M (Dom f) -> M (Ran f) -> Rel f -> M f.
-Proof.
-  intros f domf_ ranf_ relf.
-  assert (H : f ⊆ (Power (Power ((Dom f) ∪  (Ran f))))).
-  + intros i i_f.
-    assert (i_ : M i) by (by exists f).
-    apply power.
-    done.
-    intros j j_i.
-    apply power.
-    by exists i.
-    intros k k_j.
-    apply cup.
-    specialize (relf i i_f).
-    apply product in relf.
-    induction relf as [x]; induction H as[y].
-    induction H as [x_]; induction H as [y_].
-    induction H as [i_xy _].
+  apply sub_set with (y := Power (Power (x ∪ y))).
+  + by apply pow_set; apply pow_set; apply cup_set.
+  + move => i H.
+    have i_ : M i by is_set.
+    move /(in_prod x y i) : H => [x0 [y0 [x0_ [y0_ [i_xy [xx yy]]]]]].
+    apply in_pow => //.
+    move => j ji.
+    apply in_pow => //; is_set.
+    move => k kj.
+    apply in_cup.
     subst i.
-    apply op in j_i.    
-    induction j_i as [j_xx | j_xy].
-    - subst j.
-      apply in_single in k_j.
-      subst k.
-      apply or_introl.
-      apply dom.
-      done.
-      by exists y.
-      by exists (Single x).
-      done.
-    - subst j.
-      apply pairing in k_j.
-      induction k_j as [kx | ky].
-      * subst k.
-        apply or_introl.
-        apply dom.
-        done.
-        by exists y.
-      * subst k.
-        apply or_intror.
-        apply ran .
-        done.
-        by exists x.
-      * by exists (Pairing x y) .
-    - done.
-    - done.
-    - by exists (<|x,y|>).
-  + apply (sub_set f  (Power (Power ((Dom f) ∪ (Ran f))))).
-    repeat apply power_set.
-    by apply cup_set.
-    done.
-Qed.
+    have j_ : M j by  is_set.
+    have k_ : M k by is_set.    
+    move /(in_orderd x0 y0 j x0_ y0_ j_) : ji => [jxx | jxy]; subst j.
+    - by move /(in_single x0 k k_) : kj ->; left.
+    - by case /(in_pair x0 y0 k k_) : kj => [kx|ky]; [left|right]; subst k.
+Qed.      
 
-Goal forall x, M x -> forall f, Fnc f -> M (Image f x).
+      
+
+
+Theorem not_empty x :
+  x <> ∅ <-> exists y, y ∈ x.
 Proof.
-  intros x x_ f fncf.
-  apply Replacement.
-  done.
-  apply fncf.
-Qed.  
-
+  split => [Hx|[y yx] Hx].
+  + apply NNPP => F.
+    move /not_ex_all_not : F => H.
+    apply Hx.
+    equal => i.
+    split => [ix | F].
+    - case ((H i) ix).
+    - suff i0 : ~ i ∈ ∅.
+        case (i0 F).
+      apply notin_empty; is_set.
+  + suff F : (~ y ∈ ∅).
+      by apply F; subst x.
+    apply notin_empty; is_set.
+Qed.    
 
 Theorem caps_set X :
   X <> ∅ -> M (⊓ X).
 Proof.
-  intro not_empty.
-  assert (ex_x : exists x, x ∈ X).
-  + move : not_empty.
-    apply contrapositive.
-    rewrite <- allnot_notexists.
-    intro H.
-    apply DoubleNegative.
-    apply equal => x.
-    split => [h | h].
-    - case (H x h).
-    - assert (x_ : M x) by (by exists ∅).
-      specialize (empty x x_) as emp.      
-      case (emp h).
-  + induction ex_x as [x xX].
-    assert (H : ⊓ X ⊆ x).
-    - intros i iX.
-      assert (i_ : M i) by (by exists (⊓ X)).
-      move : iX.
-      rewrite caps.
-      by apply.
-      done.
-    - apply (sub_set _ x).
-      by exists X.
-      done.
-Qed.
+  move /not_empty => [x xX].
+  apply sub_set with (y := x).
+  + is_set.
+  + move => i H.
+    have i_ : M i by is_set.
+    by move /(in_caps X i i_) : H ; apply.
+Qed.    
+
 
 Definition Inverse f :=
   {: (Ran f) × (Dom f) |
    fun u => exists x y, M x /\ M y /\ u = <|x,y|> /\ <|y,x|> ∈ f 
   :}.
 
-Theorem inverse f u :
+Theorem in_inv f u :
   u ∈ Inverse f <-> exists x y, M x /\ M y /\ u = <|x,y|> /\ <|y,x|> ∈ f.
 Proof.
-  split => [H | H].
-  + assert (u_ : M u) by (by exists (Inverse f)).
-    apply separation in H.
-    by induction H as [H H0].
-  + induction H as [x]; induction H as [y].
-    induction H as [x_]; induction H as [y_].
-    induction H as [u_xy uf].
-    subst u.
-    apply separation.
-    split.
-    - apply product.
-      exists x; exists y.
-      refine (conj x_ (conj y_ _)).
-      apply conj. done.
-      split.
-      * apply ran.
-        done.
-        by exists y.
-      * apply dom.
-        done.
-        by exists x.
-    - by exists x; exists y.
-Qed.
+  split => [H | [x [y [x_ [y_ [u_xy yx_f]]]]]].
+  + have u_ : M u by is_set.
+    move /(in_cls _ u u_) : H => [H [x [y [x_ [y_ [u_xy yx_f]]]]]].
+    by exists x; exists y.
+  + rewrite in_cls => //.      
+    * split.
+      - rewrite in_prod.
+        exists x; exists y.
+        split => //; split => //; split => //; split.
+        apply in_ran => //; exists y => //.
+        apply in_dom => //; exists x => //.
+      - by exists x; exists y.
+    * subst u; apply orderd_set => //.
+Qed.      
+     
 
 
 Definition Un₁ X := Un X /\ Un (Inverse X).
+
+Definition Value f x :=
+  ⊓ {| fun y => <|x,y|> ∈ f|}.
+Notation "f [ x ]" := (Value f x) (at level 5).
+
+Theorem value_set f x :
+  x ∈ Dom f -> M f[x].
+Proof.
+  move => H.
+  apply caps_set.
+  apply not_empty.
+  have x_ : M x by is_set.
+  move /(in_dom f x x_) : H => [y [y_ xy_f]].
+  exists y; apply in_cls => //.
+Qed.
+
+Goal forall x, M x -> ⊓ (Single x) = x.
+Proof.
+  move => x x_.
+  equal => i.
+  split => [H|H]; have i_ :  M i by is_set.
+  + move /(in_caps (Single x) i i_) : H.
+    apply.
+    apply single_refl => //.
+  + apply in_caps => //.
+    move => y y_xx.
+    have y_ : M y by is_set.
+    move /(in_single x y y_) : y_xx -> => //.
+Qed.  
+
+
+
+Theorem in_value f x y (y_ : M y):
+  Un f -> x ∈ Dom f -> <|x, y|> ∈ f <-> y = f[x].
+Proof.
+  move => unf x_domf.
+  have H : forall z, M z -> <|x,z|> ∈ f -> z = f[x].
+    move => z z_ zx_f.
+    equal => i.
+    split => [iz|i_fx]; have i_ : M i by is_set.
+    - rewrite in_cls => //.
+      move => j Hj.
+      have j_ : M j by is_set.
+      move /(in_cls _ j j_) : Hj => xj_f.
+      suff yj : z = j.
+        by subst z.
+      apply unf with (x := x) => // ; is_set.
+    - move /(in_cls _ i i_) : i_fx.
+      apply.
+      apply in_cls => //.
+- split => [xy_f|y_fx].
+  + apply H => //.
+  + subst y.
+    have x_ : M x by is_set.
+    case /(in_dom f x x_) : x_domf => [z [z_ xz_f]].
+    by move : (H z z_ xz_f) <-.
+Qed.
+
+
+Theorem value_in f x :
+  Un f -> x ∈ Dom f -> <|x, f[x]|> ∈ f.
+Proof.
+  move =>  unf x_domf.
+  have x_ : M x by is_set.
+  have H0 : exists y, M y /\ <|x,y|> ∈ f.
+    move /(in_dom f x x_) : x_domf  => [y [y_ xy_f]].
+    by exists y.
+  move : H0 => [y [y_ xy_f]].
+  suff y_fx : y = f[x].
+    by subst y.
+  apply in_value => //.
+Qed.  
+
 
 
 

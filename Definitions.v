@@ -178,7 +178,7 @@ Qed.
 Definition Sq X := X × X.
 Notation "X ²" := (Sq X)(at level 1).
 
-Definition Rel X := X ⊆ V².
+Definition Rel X := X ⊂ V².
 
 Definition Power X :=
   {| fun x => x ⊂ X|}.

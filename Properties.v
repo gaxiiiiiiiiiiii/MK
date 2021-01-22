@@ -154,7 +154,7 @@ Proof.
   split => [[[ix | iy] | iz] | [ix | [iy | iz]]]; eauto.
 Qed.
 
-Theorem union_Pair x y (x_ : M x) (y_ : M y):
+Theorem cup_cupspair x y (x_ : M x) (y_ : M y):
   x ∪ y = ⊔ (Pair x y).
 Proof.
   equal => i; rewrite in_cup in_cups.
@@ -167,7 +167,7 @@ Proof.
     move /(in_pair x y xy xy_) : xyxy => [Hx|Hy]; subst xy; [left|right] => //.
 Qed.
 
-Theorem caps_Pair x y (x_ : M x) (y_ : M y) :
+Theorem cap_capspair x y (x_ : M x) (y_ : M y) :
   x ∩ y = ⊓ (Pair x y).
 Proof.
   equal => i; rewrite in_cap.

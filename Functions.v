@@ -4,65 +4,42 @@ Definition Un X :=
   forall x y z, M x -> M y -> M z ->
   <|x,y|> ∈ X -> <|x,z|> ∈ X -> y = z.
 
+
     
 Definition Fnc X :=
-  X ⊆ V² /\ Un X.
+  Rel X /\ Un X.
 
 Definition Map f X Y :=
-  Fnc f /\ Dom f = X /\ Ran f ⊆ Y.
+  Fnc f /\ Dom f = X /\ Ran f ⊂ Y.
 Notation "f : X → Y" := (Map f X Y) (at level 10).
 
-Definition Restriction X Y  :=
-  X ∩ (Y × V).
-Notation "X ∥ Y" := (Restriction X Y)(at level 10).
+Definition Restriction f X  :=
+  f ∩ (X × V).
+Notation "f | ( X )" := (Restriction f X)(at level 10).
 
-Theorem restriction f X g :
-    g ∈ (f ∥ X) <-> exists x y, M x /\ M y /\ g = <|x,y|> /\ g ∈ f /\ x ∈ X.
+Theorem in_restrict f X g :
+    g ∈ (f | (X)) <-> exists x y, M x /\ M y /\ g = <|x,y|> /\ g ∈ f /\ x ∈ X.
 Proof.
   unfold Restriction.
-  rewrite cap.
-  rewrite product.
-  split => [H | H].
-  + induction H as [gf H].
-    induction H as [x]; induction H as [y].
-    induction H as [x_]; induction H as [y_].
-    induction H as [g_xy]; induction H as [xX yV].
-    by exists x; exists y.
-  + induction H as [x]; induction H as [y].
-    induction H as [x_]; induction H as [y_].
-    induction H as [g_xy]; induction H as [gf xX].
-    apply (conj gf).
-    assert (yV : y ∈ V).
-    apply universe.
-    apply y_.
-    by exists x; exists y.
+  rewrite in_cap.
+  rewrite in_prod.
+  split => [ [gf [x [y [ x_ [y_  [g_xy [ xX _]]]]]]] | [x [y [x_ [y_ [g_xy [gf xX]]]]]]]; [|split] => //; exists x; exists y => //.
+  by rewrite in_universe.
 Qed.    
 
 
+Definition Image f X :=
+  Ran (f | (X)).
 
-
-Definition Image X Y :=
-  Ran (X ∥ Y).
-
-Theorem image f X y (y_ : M y):
+Theorem in_image f X y (y_ : M y):
     y ∈ (Image f X) <-> exists x, M x /\ x ∈ X /\ <|x,y|> ∈ f.
 Proof.
   unfold Image.
-  rewrite ran.
-  split => [H | H].
-  + induction H as [x].
-    induction H as [x_ H].
-    apply restriction in H.
-    induction H as [x0]; induction H as [y0].
-    induction H as [x0_]; induction H as [y0_].
-    induction H as [xyxy]; induction H as [xy_f xX].
-    apply (OP_eq x y x0 y0 x_ y_ x0_ y0_) in xyxy; induction xyxy; subst x0 y0.
+  rewrite in_ran => //.
+  split => [[x [x_ H]]| [x [x_ [xX xy_f]]]].
+  + move /in_restrict : H => [x0 [y0 [x0_ [y0_ [xyxy [xy_f xX]]]]]].
+    move /(orderd_eq x y x0 y0 x_ y_ x0_ y0_) : xyxy => [xx0 yy0]; subst x0 y0.
     by exists x.
-  + induction H as [x]; induction H as [x_].
-    induction H as [xX xy_f].
-    exists x.
-    apply (conj x_).
-    rewrite restriction.
-    by exists x; exists y.
-  + apply y_.
-Qed.
+  + exists x; split => //; rewrite in_restrict.
+    by exists x ; exists y.
+Qed.    
