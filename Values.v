@@ -1,130 +1,86 @@
-Require Export Infinity.
+Require Export Replacement.
 
 
 Theorem dom_inverse {f} :
   Dom (Inverse f) = Ran f.
   Proof.
-    apply equal => x.
-    split => [H | H].
-    + assert (x_ : M x) by (by exists (Dom (Inverse f))).
-      apply dom in H.
-      apply ran.
-      done.
-      induction H as [y]; induction H as [y_].
-      apply inverse in H.
-      induction H as [x0]; induction H as [y0].
-      induction H as [x0_]; induction H as [y0_].
-      induction H as [xyxy xy_f].
-      apply (OP_eq x y x0 y0 x_ y_ x0_ y0_) in xyxy.
-      induction xyxy; subst x0 y0.
+    equal => x.
+    split => [H | H]; have x_ : M x by is_set.
+    + move /(in_dom _ x x_) : H => [y [y_ xy_f']].
+      move /in_inv : xy_f' => [x0 [y0 [x0_ [y0_ [xyxy yx_f]]]]].
+      move /(orderd_eq x y x0 y0 x_ y_ x0_ y0_) : xyxy => [xx yy]; subst x0 y0 => {x0_ y0_}.
+      rewrite in_ran => //.
       by exists y.
-      done.
-    + assert (x_ : M x) by (by exists (Ran f)).
-      apply ran in H.
-      induction H as [y]; induction H as [y_].
-      rewrite dom.
-      exists y.
-      apply (conj y_).
-      rewrite inverse.
+    + move /(in_ran _ x x_) : H => [y [y_ yx_f]].
+      rewrite in_dom => //.
+      exists y; split => //.
+      rewrite in_inv => //.
       by exists x; exists y.
-      done.
-      done.
   Qed.
 
 Theorem ran_inverse {f} :
   Ran (Inverse f) = Dom f.
   Proof.
-    apply equal => x.
-    split => [H | H].
-    + assert (x_ : M x) by (by exists (Ran (Inverse f))).
-      apply ran in H.
-      induction H as [y]; induction H as [y_].
-      apply inverse in H.
-      induction H as [y0]; induction H as [x0].
-      induction H as [y0_]; induction H as [x0_].
-      induction H as [yxyx xy_f].
-      apply (OP_eq y x y0 x0 y_ x_ y0_ x0_) in yxyx.
-      induction yxyx; subst y0 x0.
-      apply dom.
-      done.
+    equal => x.
+    split => [H | H]; have x_ : M x by is_set.
+    + move /(in_ran _ x x_) : H => [y [y_ H]].
+      move /in_inv : H => [y0 [x0 [y0_ [x0_ [xyxy xy_f]]]]].
+      move /(orderd_eq y x y0 x0 y_ x_ y0_ x0_) : xyxy => [yy xx]; subst x0 y0 => {x0_ y0_}.
+      rewrite in_dom => //.
       by exists y.
-      done.
-    + assert (x_ : M x) by (by exists (Dom f)).
-      apply dom in H.
-      induction H as [y]; induction H as [y_ xy_f].
-      apply ran.
-      done.
-      exists y.
-      apply (conj y_).
-      apply inverse.
+    + move /(in_dom _ x x_) : H => [y [y_ xy_f]].
+      rewrite in_ran => //.
+      exists y; split => //.
+      rewrite in_inv.
       by exists y; exists x.
-      done.
-  Qed.
+Qed.
 
-Theorem in_inverse {f a b} {a_ : M a} {b_ : M b}:
+
+
+
+Theorem orderd_in_inv {f a b} {a_ : M a} {b_ : M b}:
   <|a,b|> ∈ Inverse f <-> <|b,a|> ∈ f.
 Proof.
-rewrite inverse.
-split => [H | H]      .
-+ induction H as [x]; induction H as [y].
-  induction H as [x_]; induction H as [y_].
-  induction H as [abxy ba_f].
-  apply (OP_eq a b x y a_ b_ x_ y_) in abxy.
-  by induction abxy; subst x y.
+rewrite in_inv.
+split => [[x [y [x_ [y_ [abxy yx_f]]]]] | H].
++ by move /(orderd_eq a b x y a_ b_ x_ y_) : abxy => [ax yb]; subst a b.
 + by exists a; exists b.
 Qed.
 
-Theorem eq_value f a b (a_ : M a) (b_ : M b) :
-  Un f -> a ∈ Dom f -> <|a,b|> ∈ f <-> b = Value f a.
-Proof.
-  intros unf domf.
-  specialize (value f a unf domf) as H.
-  induction H.
-  split => [H1 | H1].
-  + apply (unf a b (Value f a) a_ b_ H0 H1 H).
-  + by rewrite H1.
-Qed.   
 
 
 
-Theorem value_value f x :
+Theorem value_inv_value f x :
   Un₁ f -> x ∈ Dom f -> x = Value (Inverse f) (Value f x).
 Proof.
-  intros unf domf.
-  induction unf.
-  specialize (value f x H domf) as H1.
-  induction H1.
-  assert (x_ : M x) by (by exists (Dom f)).
-  assert (Value f x ∈ Dom (Inverse f)).
-    rewrite dom_inverse.
-    rewrite ran.
-    by exists x.
-    done.
-  rewrite <- (eq_value (Inverse f) (Value f x) x H2 x_ H0 H3).
-  by rewrite in_inverse.
+  move =>  [unf unf'] domf.
+  have x_ : M x by is_set.  
+  apply (in_dom _ x x_) in domf as H.
+  move : H => [y [y_ xy_f]].
+  apply (in_value) in xy_f  as y_fx => //.
+  rewrite -y_fx.
+  have yx_f' : <|y,x|> ∈ Inverse f.
+    rewrite orderd_in_inv => //.
+  apply in_value => //.
+  rewrite dom_inverse.
+  rewrite in_ran => //.
+  by exists x.
 Qed.  
 
 
-Theorem inverse_inverse {f} :
+
+Theorem inv_inv {f} :
   Rel f -> Inverse (Inverse f) = f.
 Proof.
-  intro rel_f.
-  apply equal => i.
-  split => [H | H].
-  + apply inverse in H.
-    induction H as [x]; induction H as [y].
-    induction H as [x_]; induction H as [y_].
-    induction H as [i_xy xy_f].
-    apply (@in_inverse f y x y_ x_) in xy_f.
-    by subst i.
-  + specialize (rel_f i H).
-    apply product in rel_f.
-    induction rel_f as [x]; induction H0 as [y].
-    induction H0 as [x_]; induction H0 as [y_].
-    induction H0 as [i_xy _].
-    subst i.
-    apply (@in_inverse (Inverse f) x y x_ y_).
-    by apply (@in_inverse f y x y_ x_).
+  move =>  rel_f.
+  equal => i.
+  split => [H|H]; have i_ : M i by is_set.
+  + move /in_inv : H => [x [y [x_ [y_ [i_xy yx_f']]]]]; subst i.
+    rewrite -orderd_in_inv => //.
+  + move : (rel_f i H).
+    move /in_prod => [x [y [x_ [y_ [i_xy _]]]]]; subst i.
+    rewrite orderd_in_inv => //.
+    rewrite orderd_in_inv => //.
 Qed.    
 
   
