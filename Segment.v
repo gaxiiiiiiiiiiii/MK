@@ -14,13 +14,7 @@ Definition Seg R X U :=
   {: X | fun x => <|x,U|> ∈ R:}.
 
 
-Goal forall X, Trans X <-> (forall u v, u ∈ v /\ v ∈ X -> u ∈ X).
-  Proof.
-    intro X.
-    split => [H u v [uv vX]| H x xX i ix].
-    + by apply (H v).
-    + by apply (H i x).
-Qed.       
+  
   
 Theorem trans_cupssub X :
     Trans X <-> ⊔ X ⊂ X.
@@ -43,7 +37,7 @@ Proof.
   apply in_cap => //.
 Qed.
 
-Theorem cup_trans {X Y}:
+Theorem cup_trans X Y:
     Trans X -> Trans Y -> Trans (X ∪ Y).
 Proof.
   move =>  HX HY U UXY i iU.
@@ -105,7 +99,7 @@ Proof.
   apply cap_sub_r.
 Qed.
 
-Theorem trans_seg {X} :
+Theorem trans_seg X :
   Trans X <-> forall u, M u -> u ∈ X -> Seg E X u = u.
 Proof.
   split => [H u u_ uX|H u uX i iu].

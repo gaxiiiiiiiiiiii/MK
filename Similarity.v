@@ -29,6 +29,8 @@ Definition We R A :=
     exists m, m ∈ Y /\ 
     forall y, y ∈ Y /\ y <> m -> <|m,y|> ∈ R /\ ~ <|y,m|> ∈ R.
 
+
+
 Definition sim  f W1 W2 :=
   exists x1 x2 r1 r2, 
   M x1 /\ M x2 /\ M r1 /\ M r2 /\
@@ -167,7 +169,7 @@ Proof.
 Qed.  
 
 
-Theorem we_sub {R X Y} :
+Theorem we_sub R X Y :
   We R X -> Y ⊂ X -> We R Y.
 Proof.
   intros [[RelR IrrRA] we] YX.
