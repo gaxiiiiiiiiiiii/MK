@@ -202,8 +202,98 @@ Proof.
   + move => i iX.
     apply (TrY X XY i iX).
   + by subst X.
-Qed.    
+Qed.
+
+Theorem diff_set X Y (X_ : M X) :
+    M (X ~ Y).
+Proof.
+  apply sep_set => //.
+Qed.  
+
+
+
+
+
+
+
+  
+  
+
+
+
+      
+
+Theorem we_on :
+  We E On.
+Proof.
+  have irrOn : Irr E On.
+  + split.
+    - apply RelE.
+    - move => x x_On.
+      have x_ : M x by is_set.
+      rewrite orderd_in_E => //.
+      apply ord_notrefl.
+      rewrite -on_ord => //.
+  + move : irrOn => [RelE irrOn].
+    split => //.
+    move => X [X_On _X].
+    move /not_empty : _X => [x xX].
+    have x_ : M x by is_set.
+    move : (X_On x xX) => xOn.
+    move : (trans_on x xOn) => x_On.
+    move /(on_ord x x_) : xOn => [[[_ irrx] wex] Trx].
+
+ 
+
+
+    pose Y := X ~ x.
+    have Y_X : Y ⊂ X.
+      move => i iY.
+      have i_ : M i by is_set.
+      by move /diff : iY => [iX _].
+    have _Xx : X <> x.
+      move => Xx; subst x.
+      have X_ : M X by is_set.
+      move : (X_On X xX) => ordX.
+      move /(on_ord X X_) : ordX => ordX.
+      move : (ord_notrefl X ordX).
+      by apply.
+
+
+    pose Y := X ∩ x.
+    have Y_x : Y ⊂ x.
+      move => i iY; have i_ : M i by is_set.
+      by move /in_cap : iY => [_ ix].
+    move : (wex Y).
+    case /imply_to_or => H.
+    - case /not_and_or : H => [_Y_x|_Y] => //.
+      exists x.
+      split => //.
+      move => y [yX _yx].
+      have _y : M y by is_set.
+      rewrite !orderd_in_E => //.
+      split; first last.
+      * move => yx.
+        apply _Y.
+        apply not_empty.
+        exists y.
+        by apply in_cap.
+      * apply NNPP => _xy.
+        apply _Y.
+        apply not_empty.
+
+
+      
+   
+
+
         
+
+    
+
+
+
+
         
 
 

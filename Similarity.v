@@ -148,7 +148,7 @@ Proof.
 Qed.      
 
 
-Theorem we_tot {R A} : 
+Theorem we_tot R A : 
   We R A -> Tot R A.
 Proof.
   intro.
@@ -417,7 +417,7 @@ Proof.
   by exists y.
 Qed. 
 
-(* Tr R A /\ Irr R A /\ Con R A. *)
+
 
 Lemma fld_set X (X_ : M X) :
   M (Fld X).
@@ -588,3 +588,54 @@ Proof.
     apply in_value => //.
     by move => am; apply _bn; rewrite b_fa n_fm am.
 Qed.   
+
+
+Theorem we_ind X R (P : Class -> Prop) (weX : We R X) :
+  (forall a, a ∈ X -> (forall b, b ∈ X -> <|b,a|> ∈ R -> P b) -> P a) -> forall a, a ∈ X -> P a.
+Proof.
+  move => H a aX.
+  move : (we_tot R X weX) => [[RelE TrX] [[_ irrX] [_ conX]]].
+  move : weX => [_ wex].
+  apply NNPP => _Pa.
+  pose Y := {:X | fun x => ~ P x:}.
+  have aY : a ∈ Y by apply in_sep.
+  have a_ : M a by is_set.
+  have _Y : Y <> ∅.
+    move => _Y.
+    rewrite _Y in aY.  
+    by move : (notin_empty a a_ aY).
+  have YX : Y ⊂ X by apply sep_sub.
+  move : (wex Y (conj YX _Y)) => [m [mY Hm]].
+  move : (Hm a) => Ha.
+  have we' : forall b, <|b,m|> ∈ R -> ~ b ∈ Y.
+    move => b bm bY.
+    case (classic (b = m)) => H0.
+      subst m.
+      move : bm; apply irrX.
+      by move /in_sep : bY => [bX _].
+      by move : (Hm b (conj bY H0)) => [_ F].
+  case (classic (a = m)) => _ma.
+  + subst m.
+    move : (H a aX) => H0.
+    case /imply_to_or : H0 => H1 => //.
+    move /not_all_ex_not : H1 => [b Hb].
+    move /(imply_to_and (b ∈ X) _) : Hb => [bX Hb].
+    move /(imply_to_and _ (P b)) : Hb => [ba _Pb].
+    apply (we' b ba).
+    apply in_sep => //.
+  + move : (Ha (conj aY _ma)) => [ma _am].
+    move /in_sep : mY => [mX _Pm].
+    apply _Pm.
+    apply H => //.
+    move => b bX bm.
+    move : (we' b bm) => _bY.
+    apply NNPP => _Pb.
+    apply _bY.
+    apply in_sep; split => //.
+Qed.    
+
+
+
+
+
+
