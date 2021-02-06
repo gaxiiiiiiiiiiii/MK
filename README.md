@@ -1,13 +1,12 @@
-Logics.v
-Axioms.v
-Definitions.v
-Propeties.v
-Functions.v
-Replacement.v
-<!-- Infinity.v -->
-Values.v
-Composition.v
-Similarity.v
-Segment.v
-Order.v
-Natural.v
+1.Logics.v
+2.Axioms.v
+3.Definitions.v
+4.Propeties.v
+5.Functions.v
+6.Replacement.v
+7.Values.v
+8.Composition.v
+9.Similarity.v
+10.Segment.v
+11.Order.v
+12.Natural.v
